@@ -83,10 +83,10 @@ public class Member implements PostInit{
 
         boolean respawned = respawnAtAltarIfAvailable();
         if (respawned) {return;}
-
-        Location deathLocation = Bukkit.getPlayerExact(NAME).getLocation();
+        Player p = Bukkit.getPlayerExact(NAME);
+        Location deathLocation = p.getLocation();
         if (deathLocation.getWorld() == Bukkit.getWorld("Tribes_the_end") && deathLocation.getY() < 0) {
-            deathLocation = Bukkit.getPlayerExact(NAME).getBedSpawnLocation();
+            deathLocation = p.getRespawnLocation();
             if (deathLocation == null) {
                 deathLocation = Main.WORLD.getSpawnLocation();
             }
@@ -188,7 +188,7 @@ public class Member implements PostInit{
         respawnCooldownTask = null;
         Bukkit.broadcast(Component.text(NAME + " respawned", NamedTextColor.YELLOW)); // finn ut åssen man gjør at det blir gul tekst i cmden
         p.setGameMode(GameMode.SURVIVAL);
-        Location spawnPos = p.getBedSpawnLocation();
+        Location spawnPos = p.getRespawnLocation();
         if (spawnPos == null) {
             spawnPos = p.getWorld().getSpawnLocation();
         }

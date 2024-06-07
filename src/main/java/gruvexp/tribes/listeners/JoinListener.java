@@ -35,9 +35,9 @@ public class JoinListener implements Listener {
         // DEBUG
         if (p.getName().equals("GruveXp")) {
             Main.gruveXp = p;
-            if (Main.WORLD.getName().equals(Main.testWorldName)) {
+            /*if (Main.WORLD.getName().equals(Main.testWorldName)) {
 
-            }
+            }*/
         }
 
         // Schedule a task to remove invulnerability after 5 seconds

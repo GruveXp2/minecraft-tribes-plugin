@@ -2,8 +2,11 @@ package gruvexp.tribes.commands;
 
 import gruvexp.tribes.Manager;
 import gruvexp.tribes.Tribe;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.TextComponent;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -11,6 +14,9 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import javax.naming.Name;
 
 public class SpectateCommand implements CommandExecutor {
 
@@ -38,20 +44,10 @@ public class SpectateCommand implements CommandExecutor {
             Tribe otherTribe = Manager.getMember(targetPlayerName).tribe();
             if (tribe != otherTribe) {
                 p.sendMessage("Sending spectate request to " + targetPlayerName);
-                TextComponent message = new TextComponent(playerName + " has requested to spectate you [");
 
-                TextComponent accept = new TextComponent(ChatColor.GREEN + "ACCEPT");
-                accept.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/java accepttp " + playerName));
-                message.addExtra(accept);
+                TextComponent message = getTpReqMessage(playerName);
 
-                message.addExtra(ChatColor.WHITE + " | ");  // Add a space between each option
-
-                TextComponent decline = new TextComponent(ChatColor.RED + "DECLINE");
-                decline.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/java declinetp " + playerName));
-                message.addExtra(decline);
-                message.addExtra(ChatColor.WHITE + "]");
-
-                q.spigot().sendMessage(message);
+                q.spigot().sendMessage((BaseComponent) message);
                 return true;
             }
             //p.setSpectatorTarget(q); // BØGGA FUNKER IKKE!
@@ -64,5 +60,19 @@ public class SpectateCommand implements CommandExecutor {
             p.sendMessage(ChatColor.RED + e.getMessage());
         }
         return true;
+    }
+
+    @NotNull
+    private static TextComponent getTpReqMessage(String playerName) {
+        TextComponent accept = Component.text("ACCEPT", NamedTextColor.GREEN)
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/java accepttp " + playerName));
+        TextComponent decline = Component.text("DECLINE", NamedTextColor.RED)
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.RUN_COMMAND, "/java declinetp " + playerName));
+
+        return Component.text(playerName + " has requested to spectate you [")
+                .append(accept)
+                .append(Component.text(" | ")) // Add a space between each option
+                .append(decline)
+                .append(Component.text(" | "));
     }
 }

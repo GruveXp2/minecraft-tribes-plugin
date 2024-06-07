@@ -36,33 +36,34 @@ public class TribeCommand implements CommandExecutor {
                 case "stats" -> {
                     int totalCoins = 0;
                     int LINES = 100; // hvor mange |
-                    HashMap<Tribe, Integer> tribeBalance = new HashMap<>();
+                    HashMap<Tribe, Integer> tribeBalance = new HashMap<>(); // brukt for å beregne hvor mange kr hver tribe har i kromerDisctribution
                     for (Tribe tribe : Manager.getTribes()) {
                         tribeBalance.put(tribe, tribe.getCoinBalance());
                         totalCoins += tribe.getCoinBalance();
                     }
-                    Component kromerStats = Component.text("Kromer distribution: ");
+                    Component kromerDistribution = Component.text("Kromer distribution: ");
                     for (Map.Entry<Tribe, Integer> entry : tribeBalance.entrySet()) {
-                        kromerStats = kromerStats.append(Component.text("|".repeat(entry.getValue() * LINES / totalCoins), NamedTextColor.NAMES.value(entry.getKey().COLOR.name().toLowerCase())));
+                        kromerDistribution = kromerDistribution.append(Component.text("|".repeat(entry.getValue() * LINES / totalCoins), NamedTextColor.NAMES.value(entry.getKey().COLOR.name().toLowerCase())));
                     }
-                    sender.sendMessage(kromerStats);
+                    sender.sendMessage(kromerDistribution); // bar som viser fordelinga av kromers, fargelagt
+                    sender.sendMessage(Component.text("Kromer pool: ").append(Component.text(Manager.getKromerPool() + " kr", NamedTextColor.GREEN))); // kromer pool
                     for (Tribe tribe : Manager.getTribes()) {
                         sender.sendMessage(tribe.COLOR + tribe.displayName() + " tribe:");
                         for (String playerName : tribe.getMemberIDs()) {
-                            TextComponent stats = Component.text(String.format("%-12s", playerName)); // adder mellomrom så han blir 12 bokstaver lang
-                            stats = stats.append(Component.text(" - ")
+                            TextComponent playerStats = Component.text(String.format("%-12s", playerName)); // adder mellomrom så han blir 12 bokstaver lang
+                            playerStats = playerStats.append(Component.text(" - ")
                                     .append(tribe.isAlive(playerName) ? Component.text("ALIVE", NamedTextColor.GREEN) : Component.text("DEAD", NamedTextColor.RED)));
                             if (!tribe.isAlive(playerName)) {
-                                stats = stats.append(Component.text(", Respawntime: ", NamedTextColor.WHITE))
+                                playerStats = playerStats.append(Component.text(", Respawntime: ", NamedTextColor.WHITE))
                                         .append(Component.text(tribe.getMember(playerName).getRespawnCooldown()))
                                         .append(Component.text("min"));
                             }
-                            stats = stats.append(Component.text(", Deaths: ", NamedTextColor.WHITE))
+                            playerStats = playerStats.append(Component.text(", Deaths: ", NamedTextColor.WHITE))
                                     .append(Component.text(tribe.getDeaths(playerName)));
-                            stats = stats.append(Component.text(", Balance: "))
-                                    .append(Component.text(tribe.getMember(playerName).getKromers() + "kr", NamedTextColor.GREEN));
+                            playerStats = playerStats.append(Component.text(", Balance: "))
+                                    .append(Component.text(tribe.getMember(playerName).getKromers() + " kr", NamedTextColor.GREEN));
 
-                            sender.sendMessage(stats);
+                            sender.sendMessage(playerStats);
                         }
                     }
                 }
@@ -156,13 +157,13 @@ public class TribeCommand implements CommandExecutor {
                     String name = entity == null ? "noone" : entity.getName();
                     p.sendMessage("Currently spectating: " + name);
                 }
-                case "hacc" -> {
+                /*case "hacc" -> {
                     assert p != null;
                     checkAdmin(p);
                     String pName = p.getName();
                     int seconds = Integer.parseInt(args[1]);
                     //Manager.getMember(pName).hacc(seconds);
-                }
+                }*/
                 case "version" -> sender.sendMessage("Plugin was last updated " + Main.VERSION);
                 default -> throw new IllegalArgumentException(NamedTextColor.RED + "\"" + oper + "\" is not a valid operation!");
             }
