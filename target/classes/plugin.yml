@@ -1,0 +1,14 @@
+name: Tribes
+version: 'Samantha'
+main: gruvexp.tribes.Main
+api-version: 1.20
+commands:
+  tribe:
+    description: this command does stuff
+    usage: /tribe [stats | register | kick | reset]
+  spec:
+    description: lets you spectate other tribe members while waiting to respawn
+    usage: /spec <player>
+  java:
+    description: this command is used when you click on links in text
+    usage: this command is not to be used directly
