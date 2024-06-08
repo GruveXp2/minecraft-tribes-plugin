@@ -47,7 +47,7 @@ public final class Manager {
         //Main.WORLD.setGameRule(GameRule.DO_DAYLIGHT_CYCLE, false);
         //Main.WORLD.setGameRule(GameRule.DO_FIRE_TICK, false);
         //Main.WORLD.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
-        Bukkit.broadcastMessage(ChatColor.GOLD + "The game is now paused. Wait for someone from another tribe to join");
+        Bukkit.broadcast(Component.text("The game is now paused. Wait for someone from another tribe to join", NamedTextColor.GOLD));
         pauseBar.setVisible(true);
         for (String playerName : members.keySet()) {
             Player p = Bukkit.getPlayerExact(playerName);
@@ -231,12 +231,17 @@ public final class Manager {
         if (active) {
             if (pauseCooldown != null) {
                 pauseCooldown.cancelPause();
-                Bukkit.broadcastMessage(ChatColor.GREEN + "Someone joined, pausing cancelled");
+                Bukkit.broadcast(Component.text("Someone joined, pausing cancelled", NamedTextColor.GREEN));
                 pauseCooldown = null;
             } else {
                 unPause();
             }
         } else {
+            if (activeTribes == 0) {
+                // close server in 5 seconds
+                Bukkit.broadcast(Component.text("No more players online, server will shutdown in 5 seconds", NamedTextColor.RED));
+                Bukkit.getScheduler().runTaskLater(Main.getPlugin(), Bukkit::shutdown, 100L);
+            }
             if (paused) {return;}
             if (Bukkit.getOnlinePlayers().isEmpty()) {
                 pause(); // hvis den siste playeren leava så er dekke no vits å starte en pause timer
@@ -267,7 +272,7 @@ public final class Manager {
                 }
             }
         }
-        Bukkit.broadcastMessage(ChatColor.GREEN + "No players alive, cooldown timers will be reduced");
+        Bukkit.broadcast(Component.text("No players alive, cooldown timers will be reduced", NamedTextColor.GREEN));
         new CooldownReduction(respawnCooldowns).runTaskTimer(Main.getPlugin(), 0, 1);
     }
 
@@ -302,7 +307,7 @@ public final class Manager {
     }
 
     public static void saveData() {
-        if (tribes.size() == 0) {
+        if (tribes.isEmpty()) {
             return;
         }
         // {kromerPool: 69, tribes: {}}

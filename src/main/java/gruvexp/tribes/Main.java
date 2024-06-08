@@ -3,7 +3,6 @@ package gruvexp.tribes;
 import gruvexp.tribes.commands.*;
 import gruvexp.tribes.listeners.*;
 import gruvexp.tribes.tasks.NetherEndCooldown;
-import net.kyori.adventure.audience.Audience;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -13,10 +12,9 @@ public final class Main extends JavaPlugin {
 
     private static Main plugin;
     public static World WORLD;
-    public static Audience AUDIENCE;
     public static final String testWorldName = "Tribes test server";
     public static final String worldName = "Tribes";
-    public static final String VERSION = "2024.05.14";
+    public static final String VERSION = "2024.06.08";
     public static String dataPath;
     public static Player gruveXp;
 

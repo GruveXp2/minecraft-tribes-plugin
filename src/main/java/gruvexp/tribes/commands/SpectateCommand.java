@@ -16,8 +16,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import javax.naming.Name;
-
 public class SpectateCommand implements CommandExecutor {
 
     @Override
