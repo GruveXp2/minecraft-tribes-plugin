@@ -102,6 +102,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
             //Manager.debugMessage("RevivalAltar at " + Utils.toString(LOCATION) + ": Head detected");
             Skull head = (Skull) headBlock.getState();
             if (!head.hasOwner()) {return;}
+            if (!head.getOwningPlayer().hasPlayedBefore()) {return;} // hvis det er mob heads
             selectPlayer(head.getOwningPlayer().getName());
         }
     }
@@ -116,7 +117,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         for (int i = 0; i < contents.length - 1; i++) { // slots 1-4
             ItemStack item = contents[i];
             if (item != null && item.getType() != Material.AIR) {
-                if (item.getType() == Material.PLAYER_HEAD) {
+                if (item.getType() == Material.PLAYER_HEAD && ((SkullMeta) item.getItemMeta()).getOwningPlayer().hasPlayedBefore()) {
                     Δheads += item.getAmount();
                 } else if (item.getType() == Material.FIREWORK_STAR && item.getItemMeta().hasCustomModelData()) {
                     Δkromer += ItemManager.toKromer(item);
@@ -152,7 +153,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         for (int i = 0; i < contents.length - 1; i++) { // slots 1-4
             ItemStack item = contents[i];
             if (item == null) continue;
-            if (item.getType() == Material.PLAYER_HEAD && totalStoredHeads < ACTIVATION_COST_HEADS) { // skjekker om det er et player head og det trengs fler heads
+            if (item.getType() == Material.PLAYER_HEAD && totalStoredHeads < ACTIVATION_COST_HEADS && ((SkullMeta) item.getItemMeta()).getOwningPlayer().hasPlayedBefore()) { // skjekker om det er et player head og det trengs fler heads
                 int itemHeadAmount = item.getAmount();
                 SkullMeta head = (SkullMeta) item.getItemMeta();
                 String playerName = head.getOwningPlayer().getName();
