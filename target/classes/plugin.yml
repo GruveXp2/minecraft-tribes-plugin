@@ -1,5 +1,5 @@
 name: Tribes
-version: 'Samantha'
+version: '2024.06.07'
 main: gruvexp.tribes.Main
 api-version: 1.20
 commands:
