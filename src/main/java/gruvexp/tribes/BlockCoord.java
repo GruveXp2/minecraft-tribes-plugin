@@ -24,7 +24,7 @@ public class BlockCoord {
             this.y = Integer.parseInt(y);
             this.z = Integer.parseInt(z);
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(ChatColor.RED + "" + x + " " + y + " " + z + " is not a valid position!");
+            throw new IllegalArgumentException(ChatColor.RED + x + " " + y + " " + z + " is not a valid position!");
         }
     }
 
