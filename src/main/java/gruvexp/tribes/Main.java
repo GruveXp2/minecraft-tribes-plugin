@@ -22,16 +22,14 @@ public final class Main extends JavaPlugin {
     public static final String testWorldName = "Tribes test server";
     public static final String worldName = "Tribes";
     private static final int PORT = 25566; // Port used to communicate with the discord bot
-    public static final String VERSION = "2024.08.13";
+    public static final String VERSION = "2024.08.19";
     public static String dataPath;
     public static Player gruveXp;
 
     /**
      * <strong>Hoi</strong><br>
-     * canoes are pretty ebic bdw
-     * 2DO list:
-     * Add dette innafor tribe objektet i json: {revival_altars:[{x:1, y:2, z:3, cooldown: 60}, {x:4, y:5, z:6, cooldown:-1},...]} // cooldown=-1 betyr at alteret ikke er aktivert
-     */
+     * Welcome to my java plugin
+     * */
 
     @Override
     public void onEnable() {
@@ -89,16 +87,15 @@ public final class Main extends JavaPlugin {
                      BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
 
                     String command = in.readLine();
+                    //getLogger().info("Received command: " + command);
                     if (command == null || command.trim().isEmpty()) return;
                     if (command.startsWith("@")) {
                         if (command.equals("@ping")) {
                             out.write("Tribes: " + Bukkit.getOnlinePlayers().size() + " online");
                             out.newLine();
                             out.flush();
-                            return;
                         }
                     } else { // a minecraft command
-                        //getLogger().info("Received command: " + command);
 
                         CountDownLatch latch = new CountDownLatch(1);
 
