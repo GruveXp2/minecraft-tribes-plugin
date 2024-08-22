@@ -18,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class TribeCommand implements CommandExecutor {
     @Override
@@ -49,19 +50,20 @@ public class TribeCommand implements CommandExecutor {
                     sender.sendMessage(Component.text("Kromer pool: ").append(Component.text(Manager.getKromerPool() + " kr", NamedTextColor.GREEN))); // kromer pool
                     for (Tribe tribe : Manager.getTribes()) {
                         sender.sendMessage(tribe.COLOR + tribe.displayName() + " tribe:");
-                        for (String playerName : tribe.getMemberIDs()) {
+                        for (Member member : tribe.getMembers()) {
+                            String playerName = member.NAME;
                             TextComponent playerStats = Component.text(String.format("%-12s", playerName)); // adder mellomrom så han blir 12 bokstaver lang
                             playerStats = playerStats.append(Component.text(" - ")
                                     .append(tribe.isAlive(playerName) ? Component.text("ALIVE", NamedTextColor.GREEN) : Component.text("DEAD", NamedTextColor.RED)));
                             if (!tribe.isAlive(playerName)) {
                                 playerStats = playerStats.append(Component.text(", Respawntime: ", NamedTextColor.WHITE))
-                                        .append(Component.text(tribe.getMember(playerName).getRespawnCooldown()))
+                                        .append(Component.text(member.getRespawnCooldown()))
                                         .append(Component.text("min"));
                             }
                             playerStats = playerStats.append(Component.text(", Deaths: ", NamedTextColor.WHITE))
                                     .append(Component.text(tribe.getDeaths(playerName)));
                             playerStats = playerStats.append(Component.text(", Balance: "))
-                                    .append(Component.text(tribe.getMember(playerName).getKromers() + " kr", NamedTextColor.GREEN));
+                                    .append(Component.text(member.getKromers() + " kr", NamedTextColor.GREEN));
 
                             sender.sendMessage(playerStats);
                         }
@@ -95,8 +97,12 @@ public class TribeCommand implements CommandExecutor {
                     }
                     String tribeID = args[1];
                     String playerName = args[2];
+                    Player joiningPlayer = Bukkit.getPlayer(playerName);
+                    if (joiningPlayer == null) {
+                        throw new IllegalArgumentException("No online player called \"" + playerName + "\" was found");
+                    }
                     Tribe tribe = Manager.getTribe(tribeID);
-                    tribe.addMember(playerName);
+                    tribe.addMember(joiningPlayer);
                     Player q = Bukkit.getPlayerExact(playerName);
                     if (q != null) {
                         q.displayName(Component.text(q.getName(), NamedTextColor.NAMES.value(tribe.COLOR.toString())));
@@ -119,7 +125,8 @@ public class TribeCommand implements CommandExecutor {
                     }
                     String tribeID = args[1];
                     String playerName = args[2];
-                    Member member = Manager.getMember(playerName);
+                    UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
+                    Member member = Manager.getMember(playerID);
                     if (member == null) {
                         throw new IllegalArgumentException("That player wasnt in a tribe to begin with!");
                     }

@@ -19,7 +19,7 @@ import java.util.*;
 
 public class ItemManager { // recipes og items
 
-    public static final HashMap<String, HashMap<String, ItemStack>> playerCoins = new HashMap<>();
+    public static final HashMap<UUID, HashMap<String, ItemStack>> playerCoins = new HashMap<>();
     public static ItemStack REVIVAL_ALTAR;
     public static ItemStack ACTIVATED_REVIVAL_ALTAR;
     private static final HashSet<String> playersThatHasRegisteredRecipes = new HashSet<>();
@@ -27,8 +27,8 @@ public class ItemManager { // recipes og items
     public static void registerCoinItems() { // registrerer coins for alle registrerte members
         Collection<Tribe> tribes = Manager.getTribes();
         for (Tribe tribe : tribes) {
-            for (String playerName : tribe.getMemberIDs()) {
-                registerCoinItems(playerName);
+            for (UUID playerID : tribe.getMemberIDs()) {
+                registerCoinItems(playerID);
             }
         }
     }
@@ -38,12 +38,13 @@ public class ItemManager { // recipes og items
         registerAltarRecipe();
     }
     
-    public static ItemStack getStarterItems(String playerName) {
+    public static ItemStack getStarterItems(UUID playerID) {
         ItemStack GOLD_COIN = new ItemStack(Material.FIREWORK_STAR);
 
         ItemMeta goldMeta = GOLD_COIN.getItemMeta();
         goldMeta.displayName(Component.text("Gold Coin").color(NamedTextColor.GOLD));
-        goldMeta.lore(List.of(Component.text("64 Kromer"), Component.text(playerName).color(Manager.toTextColor(Manager.getMember(playerName).tribe().COLOR))));
+        String playerName = Manager.getMember(playerID).NAME;
+        goldMeta.lore(List.of(Component.text("64 Kromer"), Component.text(playerName).color(Manager.toTextColor(Manager.getMember(playerID).tribe().COLOR))));
         goldMeta.setCustomModelData(77002);
         GOLD_COIN.setItemMeta(goldMeta);
         GOLD_COIN.setAmount(5);
@@ -62,38 +63,38 @@ public class ItemManager { // recipes og items
         } * item.getAmount();
     }
 
-    public static ArrayList<ItemStack> toItems(int kromer, String owner) {// owner = playerName
-        if (!playerCoins.containsKey(owner)) {
-            throw new IllegalArgumentException("Error when making coins: owner \"" + owner + "\" is not registered");
+    public static ArrayList<ItemStack> toItems(int kromer, UUID ownerID) {// owner = playerName
+        if (!playerCoins.containsKey(ownerID)) {
+            throw new IllegalArgumentException("Error when making coins: owner \"" + Manager.getMember(ownerID).NAME + "\" is not registered");
         }
         ArrayList<ItemStack> coins = new ArrayList<>();
         int netheriteCoins = kromer / 4096;
         if (netheriteCoins > 0) {
             kromer -= netheriteCoins * 4096;
-            playerCoins.get(owner).get("netherite").setAmount(netheriteCoins);
-            coins.add(playerCoins.get(owner).get("netherite"));
+            playerCoins.get(ownerID).get("netherite").setAmount(netheriteCoins);
+            coins.add(playerCoins.get(ownerID).get("netherite"));
         }
         int diamondCoins = kromer / 512;
         if (diamondCoins > 0) {
             kromer -= diamondCoins * 512;
-            playerCoins.get(owner).get("diamond").setAmount(diamondCoins);
-            coins.add(playerCoins.get(owner).get("diamond"));
+            playerCoins.get(ownerID).get("diamond").setAmount(diamondCoins);
+            coins.add(playerCoins.get(ownerID).get("diamond"));
         }
         int goldCoins = kromer / 64;
         if (goldCoins > 0) {
             kromer -= goldCoins * 64;
-            playerCoins.get(owner).get("gold").setAmount(goldCoins);
-            coins.add(playerCoins.get(owner).get("gold"));
+            playerCoins.get(ownerID).get("gold").setAmount(goldCoins);
+            coins.add(playerCoins.get(ownerID).get("gold"));
         }
         int ironCoins = kromer / 8;
         if (ironCoins > 0) {
             kromer -= ironCoins * 8;
-            playerCoins.get(owner).get("iron").setAmount(ironCoins);
-            coins.add(playerCoins.get(owner).get("iron"));
+            playerCoins.get(ownerID).get("iron").setAmount(ironCoins);
+            coins.add(playerCoins.get(ownerID).get("iron"));
         }
         if (kromer > 0) {
-            playerCoins.get(owner).get("copper").setAmount(kromer);
-            coins.add(playerCoins.get(owner).get("copper"));
+            playerCoins.get(ownerID).get("copper").setAmount(kromer);
+            coins.add(playerCoins.get(ownerID).get("copper"));
         }
         return coins;
     }
@@ -109,10 +110,11 @@ public class ItemManager { // recipes og items
         return item;
     }
 
-    public static void registerCoinItems(String playerName) { // brukes kun publically når en ny player joiner
-        if (playerCoins.containsKey(playerName)) {return;} // hvis playeren allerede he registrert coin items
+    public static void registerCoinItems(UUID playerID) { // brukes kun publically når en ny player joiner
+        if (playerCoins.containsKey(playerID)) {return;} // hvis playeren allerede he registrert coin items
+        Member member = Manager.getMember(playerID);
 
-        Component ownerLore = Component.text(playerName).color(Manager.toTextColor(Manager.getMember(playerName).tribe().COLOR));
+        Component ownerLore = Component.text(member.NAME).color(Manager.toTextColor(member.tribe().COLOR));
 
         ItemStack COPPER_COIN = new ItemStack(Material.FIREWORK_STAR);
         ItemStack IRON_COIN = new ItemStack(Material.FIREWORK_STAR);
@@ -156,7 +158,7 @@ public class ItemManager { // recipes og items
         coins.put("gold", GOLD_COIN);
         coins.put("diamond", DIAMOND_COIN);
         coins.put("netherite", NETHERITE_COIN);
-        playerCoins.put(playerName, coins);
+        playerCoins.put(playerID, coins);
     }
 
     private static void registerAltarItems() {
@@ -175,15 +177,16 @@ public class ItemManager { // recipes og items
         ACTIVATED_REVIVAL_ALTAR.setItemMeta(activeAltarMeta);
     }
 
-    public static void registerCoinRecipes(String playerName) { // recipes with coins
+    public static void registerCoinRecipes(UUID playerID) { // recipes with coins
 
-        if (playersThatHasRegisteredRecipes.contains(playerName)) {return;} // returnerer hvis playeren allerede her registrert recipes
+        if (playersThatHasRegisteredRecipes.contains(playerID)) {return;} // returnerer hvis playeren allerede her registrert recipes
 
-        Player p = Bukkit.getPlayerExact(playerName);
+        Player p = Bukkit.getPlayer(playerID);
+        String playerName = Manager.getMember(playerID).NAME;
 
         assert p != null;
 
-        HashMap<String, ItemStack> coins = playerCoins.get(playerName);
+        HashMap<String, ItemStack> coins = playerCoins.get(playerID);
 
         ShapelessRecipe copperToIron = new ShapelessRecipe(new NamespacedKey(Main.getPlugin(), playerName + "_CopperIronRecipe"), coins.get("iron"));
         copperToIron.addIngredient(8, coins.get("copper"));

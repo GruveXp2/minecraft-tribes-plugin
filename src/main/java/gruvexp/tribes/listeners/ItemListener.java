@@ -25,6 +25,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
 import java.util.List;
+import java.util.UUID;
 
 public class ItemListener implements Listener {
 
@@ -48,8 +49,8 @@ public class ItemListener implements Listener {
         Item item = e.getItem();
         ItemStack itemStack = item.getItemStack();
         Player p = (Player) e.getEntity();
-        String playerName = p.getName();
-        considerOwnerChange(itemStack, playerName);
+        Member pickupingMember = Manager.getMember(p.getUniqueId());
+        considerOwnerChange(itemStack, pickupingMember);
         item.setItemStack(itemStack);
     }
 
@@ -64,9 +65,10 @@ public class ItemListener implements Listener {
             if (e.getAction() == InventoryAction.PICKUP_ALL || e.getAction() == InventoryAction.PICKUP_HALF || e.getAction() == InventoryAction.PICKUP_ONE || e.getAction() == InventoryAction.PICKUP_SOME || e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                 ItemStack itemStack = e.getCurrentItem();
                 Player p = (Player) e.getWhoClicked();
-                String playerName = p.getName();
+                Member member = Manager.getMember(p.getUniqueId());
+                if (member == null) return;
                 assert itemStack != null;
-                considerOwnerChange(itemStack, playerName);
+                considerOwnerChange(itemStack, member);
                 e.setCurrentItem(itemStack); // oppdaterer itemet i eventen
             }
         } else if (e.getView().title().equals(RevivalAltar.NAME) && /* Man er inne på et alter */
@@ -128,7 +130,7 @@ public class ItemListener implements Listener {
         }
     }
 
-    private void considerOwnerChange(ItemStack itemStack, String playerName) { // playerName er den som plukka itemet opp
+    private void considerOwnerChange(ItemStack itemStack, Member pickupingMember) { // member er den som plukka itemet opp
         if (itemStack.getType() != Material.FIREWORK_STAR && itemStack.getType() != Material.PLAYER_HEAD) {return;} // hvis det ikke er en firework_star som brukes til coins eller player heads, returner
         ItemMeta meta = itemStack.getItemMeta();
 
@@ -136,14 +138,15 @@ public class ItemListener implements Listener {
             List<Component> lore = meta.lore();
             if (lore != null) {
                 String prevPlayerName = PlainTextComponentSerializer.plainText().serialize(lore.get(lore.size() - 1)); // andre linje i loren er eieren av coinsene
+                Member prevOwner = Manager.getMember(Bukkit.getOfflinePlayer(prevPlayerName).getUniqueId());
                 int kromers = ItemManager.toKromer(itemStack);
-                lore.set(lore.size() - 1, Component.text(playerName).color(Manager.toTextColor(Manager.getMember(playerName).tribe().COLOR)));
+                lore.set(lore.size() - 1, Component.text(pickupingMember.NAME).color(Manager.toTextColor(pickupingMember.tribe().COLOR)));
                 meta.lore(lore);
-                Manager.getMember(playerName).addKromers(kromers); // adder kromers til playeren som plukka de opp
-                Manager.getMember(prevPlayerName).addKromers(-kromers); // fjerner kromers til playeren som eide det fra før av
+                pickupingMember.addKromers(kromers); // adder kromers til playeren som plukka de opp
+                prevOwner.addKromers(-kromers); // fjerner kromers til playeren som eide det fra før av
             }
         } else { // player head
-            meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, playerName);
+            meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingMember.NAME);
         }
         itemStack.setItemMeta(meta);
     }

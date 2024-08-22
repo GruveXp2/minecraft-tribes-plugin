@@ -11,14 +11,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.UUID;
+
 public class JoinListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        p.setOp(Main.WORLD.getName().equals(Main.testWorldName));
-        String pName = p.getName();
-        Member member = Manager.getMember(pName);
+        p.setOp(Main.WORLD.getName().equals(Main.testWorldName)); // if your in the testing world then you get free admin to test features
+        UUID playerID = p.getUniqueId();
+        Member member = Manager.getMember(playerID);
         if (member == null) {
             p.setGameMode(GameMode.SURVIVAL); // fikser bøgg at playeren er i creative etter at kingdoms serveren var på rett før
             return; // Player is not a member of the game
@@ -29,7 +31,7 @@ public class JoinListener implements Listener {
             p.setGameMode(GameMode.SURVIVAL); // fikser bøgg at playeren er i creative etter at kingdoms serveren var på rett før
             return;
         }
-        tribe.handleJoin(pName);
+        tribe.handleJoin(p);
         // Grant 5 seconds of invulnerability
         p.setInvulnerable(true);
         // DEBUG

@@ -16,6 +16,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.UUID;
+
 public class SpectateCommand implements CommandExecutor {
 
     @Override
@@ -29,8 +31,7 @@ public class SpectateCommand implements CommandExecutor {
             if (p.getGameMode() != GameMode.SPECTATOR) {
                 throw new IllegalArgumentException("You must be in spectator mode to use this command");
             }
-            String playerName = p.getName();
-            Tribe tribe = Manager.getMember(playerName).tribe();
+            Tribe tribe = Manager.getMember(p.getUniqueId()).tribe();
             if (tribe == null) {
                 throw new IllegalArgumentException("You need to be in a tribe to spectate");
             }
@@ -38,21 +39,22 @@ public class SpectateCommand implements CommandExecutor {
             if (q == null) {
                 throw new IllegalArgumentException("The player you specified is either not online or doesnt exist");
             }
-            String targetPlayerName = q.getName();
-            Tribe otherTribe = Manager.getMember(targetPlayerName).tribe();
+            UUID targetPlayerID = q.getUniqueId();
+            Tribe otherTribe = Manager.getMember(targetPlayerID).tribe();
             if (tribe != otherTribe) {
-                p.sendMessage("Sending spectate request to " + targetPlayerName);
+                p.sendMessage("Sending spectate request to " + targetPlayerID);
 
-                TextComponent message = getTpReqMessage(playerName);
+                TextComponent message = getTpReqMessage(p.getName());
 
                 q.spigot().sendMessage((BaseComponent) message);
                 return true;
             }
             //p.setSpectatorTarget(q); // BØGGA FUNKER IKKE!
             // WORKAROUND:
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "spectate " + targetPlayerName + " " + playerName); // p telporteres til q
+            String playerName = p.getName();
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "spectate " + targetPlayerID + " " + playerName); // p telporteres til q
 
-            p.sendMessage("You are now spectating " + targetPlayerName);
+            p.sendMessage("You are now spectating " + targetPlayerID);
             q.sendMessage(playerName + " is now spectating you");
         } catch (IllegalArgumentException e) {
             p.sendMessage(ChatColor.RED + e.getMessage());

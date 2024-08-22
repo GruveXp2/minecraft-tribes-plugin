@@ -12,11 +12,14 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class Member implements PostInit{
 
     @JsonProperty("name")
     public final String NAME;
+    @JsonProperty("id")
+    public final UUID ID;
     private Tribe TRIBE;
     private int deaths;
     private int respawnCooldown;
@@ -25,18 +28,20 @@ public class Member implements PostInit{
 
     public Member(String playerName, Tribe tribe) {
         NAME = playerName;
+        ID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
         TRIBE = tribe;
         deaths = 0;
         respawnCooldown = 0;
         kromers = 0;
         Manager.registerMember(this);
-        ItemManager.registerCoinItems(playerName);
-        ItemManager.registerCoinRecipes(playerName);
+        ItemManager.registerCoinItems(ID);
+        ItemManager.registerCoinRecipes(ID);
     }
 
     @SuppressWarnings("unused")
-    public Member(@JsonProperty("name") String playerName, @JsonProperty("deaths") int deaths, @JsonProperty("respawnCooldown") int respawnCooldown, @JsonProperty("kromers") int kromers) {
+    public Member(@JsonProperty("id") String playerID, @JsonProperty("name") String playerName, @JsonProperty("deaths") int deaths, @JsonProperty("respawnCooldown") int respawnCooldown, @JsonProperty("kromers") int kromers) {
         NAME = playerName;
+        ID = UUID.fromString(playerID);
         this.deaths = deaths;
         this.respawnCooldown = respawnCooldown;
         this.kromers = kromers;
@@ -47,12 +52,12 @@ public class Member implements PostInit{
     }
 
     public void postInit() {
-        ItemManager.registerCoinItems(NAME);
-        respawnCooldownTask = new RespawnCooldown(NAME, respawnCooldown);
+        ItemManager.registerCoinItems(ID);
+        respawnCooldownTask = new RespawnCooldown(ID, respawnCooldown);
         respawnCooldownTask.runTaskTimer(Main.getPlugin(), 0L, 20L);
-        Player p = Bukkit.getPlayerExact(NAME);
+        Player p = Bukkit.getPlayer(ID);
         if (p != null) {
-            Manager.setDeathLocation(NAME, p.getLocation());
+            Manager.setDeathLocation(ID, p.getLocation());
         }
     }
 
@@ -83,7 +88,7 @@ public class Member implements PostInit{
 
         boolean respawned = respawnAtAltarIfAvailable();
         if (respawned) {return;}
-        Player p = Bukkit.getPlayerExact(NAME);
+        Player p = Bukkit.getPlayer(ID);
         Location deathLocation = p.getLocation();
         if (deathLocation.getWorld() == Bukkit.getWorld("Tribes_the_end") && deathLocation.getY() < 0) {
             deathLocation = p.getRespawnLocation();
@@ -91,7 +96,7 @@ public class Member implements PostInit{
                 deathLocation = Main.WORLD.getSpawnLocation();
             }
         }
-        Manager.setDeathLocation(NAME, deathLocation);
+        Manager.setDeathLocation(ID, deathLocation);
         respawnCooldown = switch (deaths) {
             case 1 -> 2;
             case 2 -> 5;
@@ -100,7 +105,7 @@ public class Member implements PostInit{
             case 5 -> 30;
             default -> 300; // 5 timer
         };
-        respawnCooldownTask = new RespawnCooldown(NAME, respawnCooldown);
+        respawnCooldownTask = new RespawnCooldown(ID, respawnCooldown);
         respawnCooldownTask.runTaskTimer(Main.getPlugin(), 0L, 20L);
         Manager.messagePlayers(String.format("Total deaths: %s%s%s, respawn time: %s%s",
                 ChatColor.RED, deaths, ChatColor.WHITE, ChatColor.GOLD, respawnCooldown));
@@ -139,33 +144,33 @@ public class Member implements PostInit{
 
     @JsonIgnore
     public boolean isOnline() {
-        return Bukkit.getPlayerExact(NAME) != null;
+        return Bukkit.getPlayer(ID) != null;
     }
 
     public void playerJoined() {
         if (respawnCooldownTask == null) { // playeren lever og levde før de leava
-            Bukkit.getPlayerExact(NAME).setGameMode(GameMode.SURVIVAL);
+            Bukkit.getPlayer(ID).setGameMode(GameMode.SURVIVAL);
             return;
         }
         if (respawnCooldownTask.isCancelled()) { // playeren daua før de leava, men respawna mens de var borte
-            respawnNaturally(Objects.requireNonNull(Bukkit.getPlayerExact(NAME)));
+            respawnNaturally(Objects.requireNonNull(Bukkit.getPlayer(ID)));
         } else { // playeren daua før de leava og er fortsatt dau når de jorner igjen
             boolean respawned = respawnAtAltarIfAvailable(); // respawner ved et alter hvis det er et ledig et. hvis ikke så kommer timer opp og man venter på at timeren går ned eller et alter blir ledig
             if (respawned) {return;}
-            Bukkit.getPlayerExact(NAME).setGameMode(GameMode.SPECTATOR);
+            Bukkit.getPlayer(ID).setGameMode(GameMode.SPECTATOR);
             respawnCooldownTask.playerJoined();
-            if (Manager.getDeathLocation(NAME) == null) {
-                Manager.setDeathLocation(NAME, Objects.requireNonNull(Bukkit.getPlayerExact(NAME)).getLocation());
+            if (Manager.getDeathLocation(ID) == null) {
+                Manager.setDeathLocation(ID, Objects.requireNonNull(Bukkit.getPlayer(ID)).getLocation());
             }
         }
     }
 
     public boolean respawnAtAltarIfAvailable() { // kalles fra andre steder. Er ikke sikkert at playeren respawner, kommer an på om det er alter tilgjengelige
         // forventes at playeren både er online og dau
-        RevivalAltar altar = Manager.getAvailableAltar(NAME);
+        RevivalAltar altar = Manager.getAvailableAltar(ID);
         if (altar != null) {
             Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> {
-                Player p = Bukkit.getPlayerExact(NAME);
+                Player p = Bukkit.getPlayer(ID);
                 respawnAtAltar(p, altar);
             }, 100L); // 100L = 5 seconds (20 ticks per second)
             return true;

@@ -11,6 +11,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import java.util.UUID;
+
 public class MoveListener implements Listener {
 
     @EventHandler
@@ -24,12 +26,12 @@ public class MoveListener implements Listener {
 
     private void pauseMovement(Player p, float yaw, float pitch) {
         if (!Manager.isPaused()) {return;}
-        String pName = p.getName();
-        Member member = Manager.getMember(pName);
+        UUID playerID = p.getUniqueId();
+        Member member = Manager.getMember(playerID);
         if (member == null) {return;}
         Tribe tribe = member.tribe();
         if (tribe == null) {return;}
-        Location loc = Manager.getPauseLocation(pName);
+        Location loc = Manager.getPauseLocation(playerID);
         loc.setYaw(yaw);
         loc.setPitch(pitch);
         p.teleport(loc);
@@ -37,14 +39,14 @@ public class MoveListener implements Listener {
 
     private void spectatorMovement(Player p) {
         if (p.getGameMode() != GameMode.SPECTATOR) {return;}
-        String pName = p.getName();
-        if (Manager.getMember(pName).tribe() == null) {return;}
+        UUID playerID = p.getUniqueId();
+        if (Manager.getMember(playerID).tribe() == null) {return;}
         if (p.getSpectatorTarget() != null) {return;}
         if (Main.WORLD.getName().equals(Main.testWorldName)) {return;}
-        Location deathLoc = Manager.getDeathLocation(pName);
+        Location deathLoc = Manager.getDeathLocation(playerID);
         if (deathLoc == null) {
             deathLoc = p.getLastDeathLocation();
-            Manager.setDeathLocation(p.getName(), deathLoc);
+            Manager.setDeathLocation(p.getUniqueId(), deathLoc);
             if (deathLoc == null) {return;}
         }
         Location pLoc = p.getLocation();

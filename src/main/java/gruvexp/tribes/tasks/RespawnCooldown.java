@@ -10,21 +10,22 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.UUID;
+
 public class RespawnCooldown extends BukkitRunnable {
 
-    String playerName;
+    UUID playerID;
     Player p;
     int secondsLeft;
     final int MAX;
-    Member MEMBER;
+    Member member;
     BossBar bar = Bukkit.createBossBar(ChatColor.RED + "RespawnTimer", BarColor.RED, BarStyle.SOLID);
 
-    public RespawnCooldown(String playerName, int minutes) {
-        this.playerName = playerName;
-        MEMBER = Manager.getMember(playerName);
-        if (Bukkit.getPlayerExact(playerName) != null) {
-            p = Bukkit.getPlayerExact(playerName);
-            assert p != null;
+    public RespawnCooldown(UUID playerID, int minutes) {
+        this.playerID = playerID;
+        member = Manager.getMember(playerID);
+        p = Bukkit.getPlayer(playerID);
+        if (p != null) {
             bar.addPlayer(p);
         }
         MAX = minutes * 60;
@@ -33,7 +34,7 @@ public class RespawnCooldown extends BukkitRunnable {
     }
 
     public void playerJoined() {
-        p = Bukkit.getPlayerExact(playerName);
+        p = Bukkit.getPlayer(playerID);
         assert p != null;
         bar.addPlayer(p);
         bar.setVisible(true);
@@ -66,16 +67,16 @@ public class RespawnCooldown extends BukkitRunnable {
         secondsLeft--;
         if (secondsLeft % 60 == 0) {
             // minutter i tribe cooldown left reduseres med 1, hvis det blir 0 så respawner man
-            MEMBER.setRespawnCooldown((int) Math.ceil(secondsLeft / 60.0));
+            member.setRespawnCooldown((int) Math.ceil(secondsLeft / 60.0));
             if (secondsLeft <= 0) {
                 bar.removeAll();
                 if (p != null && p.isOnline()) {
                     //Bukkit.getLogger().info("the timer ran out, online");
-                    MEMBER.respawnNaturally(p);
+                    member.respawnNaturally(p);
                 } else {
                     //Bukkit.getLogger().info("the timer ran out, offline");
-                    Bukkit.broadcastMessage(ChatColor.YELLOW + playerName + "'s respawn cooldown ran out");
-                    Manager.getMember(playerName).tribe().handleLeaveActive(playerName);
+                Bukkit.broadcastMessage(ChatColor.YELLOW + member.NAME + "'s respawn cooldown ran out");
+                    Manager.getMember(playerID).tribe().handleLeaveActive(playerID);
                 }
                 cancel();
             }

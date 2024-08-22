@@ -10,6 +10,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class SpectateTabCompleter implements TabCompleter {
@@ -17,13 +18,16 @@ public class SpectateTabCompleter implements TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
             Player p = (Player) sender;
-            String playerName = p.getName();
+            UUID playerID = p.getUniqueId();
             try {
-                Tribe tribe = Manager.getMember(playerName).tribe();
+                Tribe tribe = Manager.getMember(playerID).tribe();
                 if (tribe == null) {
                     throw new IllegalArgumentException("You need to be in a tribe to use this command");
                 }
-                return Manager.getMemberIDs().stream().filter(name -> Bukkit.getPlayerExact(name) != null).collect(Collectors.toList()); // returnerer kun online members
+                return Manager.getMemberIDs().stream()
+                        .filter(id -> Bukkit.getPlayer(id) != null)
+                        .map(id -> Manager.getMember(id).NAME)
+                        .collect(Collectors.toList()); // returnerer kun online members
             } catch (IllegalArgumentException e) {
                 return List.of(ChatColor.RED + e.getMessage());
             }

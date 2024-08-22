@@ -17,6 +17,8 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.UUID;
+
 public class JavaCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -77,7 +79,8 @@ public class JavaCommand implements CommandExecutor {
                             } catch (NumberFormatException e) {
                                 throw new IllegalArgumentException("Error: argument <deaths> must be a number (/java hack set_deaths)");
                             }
-                            Manager.getMember(playerName).setDeaths(deaths); // setter deaths
+                            UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
+                            Manager.getMember(playerID).setDeaths(deaths); // setter deaths
                             Bukkit.broadcastMessage(String.format("%s%s hacked: set deaths of %s to %s", ChatColor.RED, p.getName(), playerName, deaths));
                         }
                         case "set_respawn_time" -> {
@@ -85,6 +88,7 @@ public class JavaCommand implements CommandExecutor {
                                 throw new IllegalArgumentException("Error: missing argument <playerName> (/java hack set_respawn_time)");
                             }
                             String playerName = args[2];
+                            UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
                             if (args.length == 3) {
                                 throw new IllegalArgumentException("Error: missing argument <deaths> (/java hack set_respawn_time)");
                             }
@@ -94,7 +98,7 @@ public class JavaCommand implements CommandExecutor {
                             } catch (NumberFormatException e) {
                                 throw new IllegalArgumentException("Error: argument <respawn_time> must be a number (/java hack set_respawn_time)");
                             }
-                            Manager.getMember(playerName).haccRespawnCooldown(respawnTime); // setter respawncooldown i minutter
+                            Manager.getMember(playerID).haccRespawnCooldown(respawnTime); // setter respawncooldown i minutter
                             Bukkit.broadcastMessage(String.format("%s%s hacked: set respawncooldown of %s to %s", ChatColor.RED, p.getName(), playerName, respawnTime));
                         }
                         case "starter_coins", "coins", "get_coins" -> {
@@ -110,15 +114,17 @@ public class JavaCommand implements CommandExecutor {
                             if (gruveXp == null) {
                                 throw new IllegalArgumentException("Bruhh gwuve not online :(");
                             }
-                            targetPlayer.getInventory().addItem(ItemManager.getStarterItems(targetPlayerName));
-                            Manager.getMember(targetPlayerName).addKromers(320);
+                            UUID targetPlayerID = targetPlayer.getUniqueId();
+                            targetPlayer.getInventory().addItem(ItemManager.getStarterItems(targetPlayerID));
+                            Manager.getMember(targetPlayerID).addKromers(320);
                         }
                         case "change_registered_balance" -> {
                             if (args.length < 4) {
                                 throw new IllegalArgumentException("Error: not enough args! /java hack change_registered_balance <player> <amount>");
                             }
                             String targetPlayerName = args[2];
-                            Member member = Manager.getMember(targetPlayerName);
+                            UUID playerID = Bukkit.getOfflinePlayer(targetPlayerName).getUniqueId();
+                            Member member = Manager.getMember(playerID);
                             if (member == null) {
                                 throw new IllegalArgumentException("That member doesnt exist!");
                             }
@@ -153,9 +159,9 @@ public class JavaCommand implements CommandExecutor {
                             }
                             String color = args[2];
                             sender.sendMessage(Component.text(color, NamedTextColor.NAMES.value(color)));
-                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getName()).tribe().COLOR.toString() + "...");
-                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getName()).tribe().COLOR.name() + "...");
-                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getName()).tribe().COLOR + "...");
+                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getUniqueId()).tribe().COLOR.toString() + "...");
+                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getUniqueId()).tribe().COLOR.name() + "...");
+                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getUniqueId()).tribe().COLOR + "...");
                         }
                         default -> throw new IllegalArgumentException("Error: wrong argument <hack> (/java hack)");
                     }

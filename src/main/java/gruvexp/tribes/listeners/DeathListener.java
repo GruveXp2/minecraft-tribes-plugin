@@ -14,13 +14,14 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 public class DeathListener implements Listener {
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        Member member = Manager.getMember(p.getName());
+        Member member = Manager.getMember(p.getUniqueId());
         if (member == null) {
             return; // Player is not a member of the game
         }
@@ -35,9 +36,9 @@ public class DeathListener implements Listener {
             }
         }
         p.teleport(deathLocation);
-        String playerName = p.getName();
-        Bukkit.broadcastMessage(ChatColor.RED +  playerName + " ded");
-        tribe.death(playerName);
+        UUID playerID = p.getUniqueId();
+        Bukkit.broadcastMessage(ChatColor.RED +  p.getName() + " ded");
+        tribe.death(playerID);
 
         Item droppedItem = Main.WORLD.dropItemNaturally(deathLocation, ItemManager.getHead(p, Objects.requireNonNull(e.deathMessage())));
         droppedItem.setUnlimitedLifetime(true);

@@ -20,8 +20,8 @@ public class Tribe {
     public final ChatColor COLOR;
     @JsonProperty("displayName")
     private String displayName;
-    private HashMap<String, Member> members = new HashMap<>();
-    private final HashMap<Location, RevivalAltar> revivalAltars = new HashMap<>(); // <location, revivalAltar>
+    private Map<UUID, Member> members = new HashMap<>();
+    private final Map<Location, RevivalAltar> revivalAltars = new HashMap<>(); // <location, revivalAltar>
     private Set<Member> activeMembers = new HashSet<>(); // folk som er online eller har cooldown, som tels som at de er "online" og gjør at motstanderteamet kan spille
 
     public Tribe(@JsonProperty("id") String id, @JsonProperty("color") ChatColor color, @JsonProperty("displayName") String displayName) {
@@ -47,37 +47,42 @@ public class Tribe {
         return balance;
     }
 
-    public void addMember(String playerName) {
-        if (members.containsKey(playerName)) {
+    public void addMember(Player p) {
+        UUID playerID = p.getUniqueId();
+        String playerName = p.getName();
+        if (members.containsKey(playerID)) {
             throw new IllegalArgumentException(ChatColor.RED + "Player " + playerName + " is already in this tribe!");
-        } else if (Manager.getMember(playerName) != null && Manager.getMember(playerName).tribe() != this) {
+        } else if (Manager.getMember(playerID) != null && Manager.getMember(playerID).tribe() != this) {
             throw new IllegalArgumentException(ChatColor.RED + "Player " + playerName + " is already in another tribe!");
         }
-        members.put(playerName, new Member(playerName, this));
+        members.put(playerID, new Member(playerName, this));
         Bukkit.broadcastMessage(String.format("%s%s %sjoined tribe %s%s", ChatColor.YELLOW, playerName, ChatColor.WHITE, COLOR, displayName));
         Manager.considerPauseToggle();
-        Manager.handlePlayerJoin(playerName);
+        Manager.handlePlayerJoin(p);
     }
 
     public void migrateMemberToThisTribe(Member member) {
-        members.put(member.NAME, member);
+        members.put(member.ID, member);
         Bukkit.broadcastMessage(String.format("%s%s %sswitched from tribe %s%s %sto %s%s", ChatColor.YELLOW, member.NAME, ChatColor.WHITE, member.tribe().COLOR, member.tribe().displayName, ChatColor.WHITE, COLOR, displayName));
         member.tribe().unregisterMember(member.NAME);
         member.switchToTribe(this);
     }
 
     @JsonIgnore
-    public Set<String> getMemberIDs() {
+    public Set<UUID> getMemberIDs() {
         return members.keySet();
     }
 
-    public Member getMember(String playerName) {
-        return members.get(playerName);
+    @JsonIgnore
+    public Collection<Member> getMembers() {return members.values();}
+
+    public Member getMember(UUID playerID) {
+        return members.get(playerID);
     }
 
     @SuppressWarnings("unused")
     @JsonProperty("members") @JsonInclude(JsonInclude.Include.NON_NULL)
-    private HashMap<String, Member> getMembersJSON() {
+    private Map<UUID, Member> getMembersJSON() {
         if (members.isEmpty()) {
             return null;
         }
@@ -86,7 +91,7 @@ public class Tribe {
 
     @SuppressWarnings("unused")
     @JsonProperty("members")
-    private void setMembersJSON(HashMap<String, Member> members) {
+    private void setMembersJSON(HashMap<UUID, Member> members) {
         this.members = members;
         this.members.values().forEach(p -> p.registerTribe(this));
         activeMembers = members.values().stream()
@@ -127,20 +132,20 @@ public class Tribe {
         return members.get(playerName).isAlive();
     }
 
-    public void death(String playerName) {
-        for (Map.Entry<String, Member> memberEntry : members.entrySet()) {
-            String playerName2 = memberEntry.getKey();
-            Player p2 = Bukkit.getPlayerExact(playerName2);
+    public void death(UUID playerID) {
+        for (Map.Entry<UUID, Member> memberEntry : members.entrySet()) {
+            UUID playerID2 = memberEntry.getKey();
+            Player p2 = Bukkit.getPlayer(playerID2);
             if (p2 == null) {continue;}
             if (p2.getGameMode() == GameMode.SPECTATOR) {continue;}
-            Player p = Bukkit.getPlayerExact(playerName);
+            Player p = Bukkit.getPlayer(playerID);
             assert p != null;
             p.teleport(p2);
             break;
         }
-        members.get(playerName).die();
+        members.get(playerID).die();
         Manager.considerCooldownReduction();
-        Manager.handleDeath(playerName); // setter isSpectating til false
+        Manager.handleDeath(playerID); // setter isSpectating til false
     }
 
     public void registerAltar(Location loc, RevivalAltar altar) {
@@ -180,16 +185,17 @@ public class Tribe {
         return out.toString();
     }
 
-    public void handleJoin(String playerName) { // when someone comes online
-        Member member = getMember(playerName);
+    public void handleJoin(Player p) { // when someone comes online
+        UUID playerID = p.getUniqueId();
+        Member member = getMember(playerID);
         member.playerJoined();
         activeMembers.add(member);
-        Manager.handlePlayerJoin(playerName);
-        ItemManager.registerCoinRecipes(playerName);
+        Manager.handlePlayerJoin(p);
+        ItemManager.registerCoinRecipes(playerID);
     }
 
-    public void handleLeaveActive(String playerName) { // when someone active goes offline or their respawn timer runs out
-        Member member = getMember(playerName);
+    public void handleLeaveActive(UUID playerID) { // when someone active goes offline or their respawn timer runs out
+        Member member = getMember(playerID);
         if (member.isAlive()) {
             activeMembers.remove(member);
             Manager.considerPauseToggle();

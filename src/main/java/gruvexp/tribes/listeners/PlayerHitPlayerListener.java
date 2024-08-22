@@ -14,10 +14,10 @@ public class PlayerHitPlayerListener implements Listener {
     public void onPlayerhit(EntityDamageByEntityEvent e) {
         if (!(e.getDamager() instanceof Player) || !(e.getEntity() instanceof Player)) {return;}
         Player p = (Player) e.getEntity();
-        Member pMember = Manager.getMember(p.getName());
+        Member pMember = Manager.getMember(p.getUniqueId());
         if (pMember == null) return;
         Player q = (Player) e.getDamager();
-        Member qMember = Manager.getMember(q.getName());
+        Member qMember = Manager.getMember(q.getUniqueId());
         if (qMember == null) return;
         if (!Manager.friendlyFire && qMember.tribe() == pMember.tribe()) {
             e.setCancelled(true);

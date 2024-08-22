@@ -21,12 +21,12 @@ import java.util.*;
 public final class Manager {
 
     public static boolean friendlyFire = false;
-    private static final HashMap<String, Member> members = new HashMap<>(); // liste over alle members uavhengig av tribe
-    private static final HashMap<String, Location> playerPauseCoords = new HashMap<>();
-    private static final HashMap<String, Location> playerDeathCoords = new HashMap<>();
-    private static final HashMap<String, Boolean> playerSpectatingStatus = new HashMap<>();
+    private static final HashMap<UUID, Member> members = new HashMap<>(); // liste over alle members uavhengig av tribe
+    private static final HashMap<UUID, Location> playerPauseCoords = new HashMap<>();
+    private static final HashMap<UUID, Location> playerDeathCoords = new HashMap<>();
+    private static final HashMap<UUID, Boolean> playerSpectatingStatus = new HashMap<>();
     private static final HashMap<Location, RevivalAltar> revivalAltars = new HashMap<>(); // har refrences til revivalalterene. Alt gjøres fra alter objektet
-    private static final HashMap<String, HashSet<RevivalAltar>> availableAltars = new HashMap<>(); // hver player har et sett med altere som er klare til å respawne playeren om den dauer
+    private static final HashMap<UUID, HashSet<RevivalAltar>> availableAltars = new HashMap<>(); // hver player har et sett med altere som er klare til å respawne playeren om den dauer
     private static final HashSet<PostInit> postInitObjects= new HashSet<>();
     private static final BossBar pauseBar = Bukkit.createBossBar("Game Paused", BarColor.YELLOW, BarStyle.SOLID);
     private static HashMap<String, Tribe> tribes = new HashMap<>();
@@ -49,12 +49,12 @@ public final class Manager {
         //Main.WORLD.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
         Bukkit.broadcast(Component.text("The game is now paused. Wait for someone from another tribe to join", NamedTextColor.GOLD));
         pauseBar.setVisible(true);
-        for (String playerName : members.keySet()) {
-            Player p = Bukkit.getPlayerExact(playerName);
+        for (UUID playerID : members.keySet()) {
+            Player p = Bukkit.getPlayer(playerID);
             if (p == null) {
                 continue;
             }
-            playerPauseCoords.put(playerName, p.getLocation());
+            playerPauseCoords.put(playerID, p.getLocation());
         }
     }
 
@@ -79,20 +79,20 @@ public final class Manager {
         }, 100L);
     }
 
-    public static void setPauseLocation(String playerName, Location loc) {
-        playerPauseCoords.put(playerName, loc);
+    public static void setPauseLocation(UUID playerID, Location loc) {
+        playerPauseCoords.put(playerID, loc);
     }
 
-    public static Location getPauseLocation(String playerName) {
-        return playerPauseCoords.get(playerName);
+    public static Location getPauseLocation(UUID playerID) {
+        return playerPauseCoords.get(playerID);
     }
 
-    public static void setDeathLocation(String playerName, Location loc) {
-        playerDeathCoords.put(playerName, loc);
+    public static void setDeathLocation(UUID playerID, Location loc) {
+        playerDeathCoords.put(playerID, loc);
     }
 
-    public static Location getDeathLocation(String playerName) {
-        return playerDeathCoords.get(playerName);
+    public static Location getDeathLocation(UUID playerID) {
+        return playerDeathCoords.get(playerID);
     }
 
     public static void schedulePostInit(PostInit object) {
@@ -106,9 +106,9 @@ public final class Manager {
         pause();
         considerCooldownReduction();
         for (Tribe tribe : tribes.values()) {
-            for (String playerName : tribe.getMemberIDs()) {
-                if (!tribe.getMember(playerName).isAlive()) {
-                    playerSpectatingStatus.put(playerName, false); // alle som er daue og joiner serveren spawner på dødsstedet
+            for (UUID playerID : tribe.getMemberIDs()) {
+                if (!tribe.getMember(playerID).isAlive()) {
+                    playerSpectatingStatus.put(playerID, false); // alle som er daue og joiner serveren spawner på dødsstedet
                 }
             }
         }
@@ -143,32 +143,32 @@ public final class Manager {
     }
 
     public static void provideAltar(RevivalAltar altar) { // gjør at det er available for spawning
-        String selectedPlayer = altar.getSelectedPlayer();
-        availableAltars.computeIfAbsent(selectedPlayer, k -> new HashSet<>());
-        availableAltars.get(selectedPlayer).add(altar);
+        UUID selectedPlayerID = altar.getSelectedPlayerID();
+        availableAltars.computeIfAbsent(selectedPlayerID, k -> new HashSet<>());
+        availableAltars.get(selectedPlayerID).add(altar);
         //debugMessage("RevivalAltar at " + Utils.toString(altar.LOCATION) + " now available to spawn " + selectedPlayer);
 
-        if (availableAltars.get(selectedPlayer).size() == 1) { // hvis ingen altere var ledige før og dette er det første som ble ledig, skjekk om selectedPlayer er dau og venter på et tilgjengelig alter, hvis det så er jo dette alteret ledig og da spawner vi playeren
-            Member member = getMember(selectedPlayer);
+        if (availableAltars.get(selectedPlayerID).size() == 1) { // hvis ingen altere var ledige før og dette er det første som ble ledig, skjekk om selectedPlayer er dau og venter på et tilgjengelig alter, hvis det så er jo dette alteret ledig og da spawner vi playeren
+            Member member = getMember(selectedPlayerID);
             if (member != null && !member.isAlive() && member.isOnline()) {
-                Player p = Bukkit.getPlayerExact(selectedPlayer);
+                Player p = Bukkit.getPlayer(selectedPlayerID);
                 member.respawnAtAltar(p, altar);
             }
         }
     }
 
     public static void withdrawAltar(RevivalAltar altar) {
-        String selectedPlayer = altar.getSelectedPlayer();
-        availableAltars.get(selectedPlayer).remove(altar);
+        UUID selectedPlayerID = altar.getSelectedPlayerID();
+        availableAltars.get(selectedPlayerID).remove(altar);
         //debugMessage("RevivalAltar at " + Utils.toString(altar.LOCATION) + " no longer available");
     }
 
-    public static RevivalAltar getAvailableAltar(String playerName) { // returnerer et random alter som er klar til å spawne inn playeren
-        HashSet<RevivalAltar> altarSet = availableAltars.get(playerName);
+    public static RevivalAltar getAvailableAltar(UUID playerID) { // returnerer et random alter som er klar til å spawne inn playeren
+        HashSet<RevivalAltar> altarSet = availableAltars.get(playerID);
         if (altarSet == null) {return null;}
         ArrayList<RevivalAltar> altars = new ArrayList<>(altarSet);
         if (altars.isEmpty()) return null;
-        return altars.get(0);
+        return altars.getFirst();
     }
 
     public static Set<String> getTribeIDs() {
@@ -179,23 +179,23 @@ public final class Manager {
         return tribes.values();
     }
 
-    public static Set<String> getMemberIDs() {
+    public static Set<UUID> getMemberIDs() {
         return members.keySet();
     }
 
     public static void registerMember(Member member) {
-        members.put(member.NAME, member);
+        members.put(member.ID, member);
     }
 
-    public static Member getMember(String playerName) {
-        return members.get(playerName);
+    public static Member getMember(UUID playerID) {
+        return members.get(playerID);
     }
 
     public static void unRegisterMember(String playerName) {
         members.remove(playerName);
     }
 
-    public static void handleDeath(String playerName) {
+    public static void handleDeath(UUID playerName) {
         playerSpectatingStatus.put(playerName, false);
     }
 
@@ -265,8 +265,8 @@ public final class Manager {
         reducingCooldowns = true;
         HashSet<RespawnCooldown> respawnCooldowns = new HashSet<>();
         for (Tribe tribe : tribes.values()) {
-            for (String memberName : tribe.getMemberIDs()) {
-                RespawnCooldown respawnCooldown = tribe.getMember(memberName).getRespawnCooldownTask();
+            for (UUID memberID : tribe.getMemberIDs()) {
+                RespawnCooldown respawnCooldown = tribe.getMember(memberID).getRespawnCooldownTask();
                 if (respawnCooldown != null) {
                     respawnCooldowns.add(respawnCooldown); // adder respawnCooldowns til en liste, og alle i listen vil få cooldownen redusert
                 }
@@ -284,11 +284,11 @@ public final class Manager {
         return reducingCooldowns;
     }
 
-    public static void handlePlayerJoin(String playerName) { // når en spiller leaver serveren
-        pauseBar.addPlayer(Bukkit.getPlayerExact(playerName));
+    public static void handlePlayerJoin(Player p) { // når en spiller leaver serveren
+        pauseBar.addPlayer(p);
         considerPauseToggle();
         if (paused) {
-            setPauseLocation(playerName, Bukkit.getPlayerExact(playerName).getLocation());
+            setPauseLocation(p.getUniqueId(), p.getLocation());
         }
     }
 

@@ -63,7 +63,10 @@ public class TribeTabCompletion implements TabCompleter {
                     }
                     String tribeID = args[1];
                     if (args.length == 3) {
-                        return new ArrayList<>(Manager.getTribe(tribeID).getMemberIDs());
+                        return Manager.getTribe(tribeID).getMembers()
+                            .stream()
+                            .map(member -> member.NAME)
+                            .collect(Collectors.toCollection(ArrayList::new));
                     }
                 }
                 case "stats" -> {
