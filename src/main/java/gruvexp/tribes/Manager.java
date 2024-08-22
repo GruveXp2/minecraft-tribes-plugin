@@ -191,12 +191,12 @@ public final class Manager {
         return members.get(playerID);
     }
 
-    public static void unRegisterMember(String playerName) {
-        members.remove(playerName);
+    public static void unRegisterMember(UUID playerID) {
+        members.remove(playerID);
     }
 
-    public static void handleDeath(UUID playerName) {
-        playerSpectatingStatus.put(playerName, false);
+    public static void handleDeath(UUID playerID) {
+        playerSpectatingStatus.put(playerID, false);
     }
 
     public static void messagePlayers(String message) {
@@ -292,8 +292,8 @@ public final class Manager {
         }
     }
 
-    public static void handleMemberLeave(String playerName) { // når en player leaver triben
-        Player p = Bukkit.getPlayerExact(playerName);
+    public static void handleMemberLeave(UUID playerID) { // når en player leaver triben
+        Player p = Bukkit.getPlayer(playerID);
         if (p == null) {return;}
         pauseBar.removePlayer(p);
     }

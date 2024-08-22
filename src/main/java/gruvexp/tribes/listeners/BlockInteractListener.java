@@ -4,10 +4,7 @@ import gruvexp.tribes.Main;
 import gruvexp.tribes.Manager;
 import gruvexp.tribes.RevivalAltar;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -24,6 +21,7 @@ import org.bukkit.util.Transformation;
 import org.joml.Vector3f;
 
 import java.util.Objects;
+import java.util.UUID;
 
 public class BlockInteractListener implements Listener { // RESPAWN ALTER DATA: koordinat (key), cooldown, heads, kromers, aura status
 
@@ -74,9 +72,9 @@ public class BlockInteractListener implements Listener { // RESPAWN ALTER DATA: 
 
 
         // registrer alteret
-        String playerName = e.getPlayer().getName();
+        UUID playerID = e.getPlayer().getUniqueId();
         Location blockLoc = new Location(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-        RevivalAltar altar = new RevivalAltar(Manager.getMember(playerName).tribe(), blockLoc, meta.getCustomModelData() == 77011); // HUSK Å GJØR AT MAN KAN SETTE NED AKTIVERTE ALTERE
+        RevivalAltar altar = new RevivalAltar(Manager.getMember(playerID).tribe(), blockLoc, meta.getCustomModelData() == 77011); // HUSK Å GJØR AT MAN KAN SETTE NED AKTIVERTE ALTERE
         altar.updateInfo(hopper.getInventory());
     }
 
@@ -107,8 +105,8 @@ public class BlockInteractListener implements Listener { // RESPAWN ALTER DATA: 
             Location loc = e.getBlock().getLocation();
             loc.add(0, -1, 0); // flytter oss ned 1 blocc for å skjekke om det er et alter der
             RevivalAltar altar = Manager.getAltar(loc);
-            if (altar == null) {return;}
-            altar.selectPlayer("NONE");
+            if (altar == null) return;
+            altar.selectPlayer(null);
         }
     }
 
@@ -121,12 +119,12 @@ public class BlockInteractListener implements Listener { // RESPAWN ALTER DATA: 
             Location loc = e.getBlockPlaced().getLocation();
             loc.add(0, -1, 0); // flytter oss ned 1 blocc for å skjekke om det er et alter der
             RevivalAltar altar = Manager.getAltar(loc);
-            if (altar == null) {return;}
+            if (altar == null) return;
             Skull head = (Skull) e.getBlock().getState();
-            try {
-                String owner = head.getOwningPlayer().getName();
-                altar.selectPlayer(owner);
-            } catch (NullPointerException ignore) { } // hvis playeren ikke fins så er dekke vits å endre no, player fortsetter å være satt til "NONE"
+            OfflinePlayer p = head.getOwningPlayer();
+            if (p == null) return;
+            UUID owner = p.getUniqueId();
+            altar.selectPlayer(owner);
         }
     }
 }

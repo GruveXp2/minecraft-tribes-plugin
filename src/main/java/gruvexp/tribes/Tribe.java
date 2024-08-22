@@ -64,7 +64,7 @@ public class Tribe {
     public void migrateMemberToThisTribe(Member member) {
         members.put(member.ID, member);
         Bukkit.broadcastMessage(String.format("%s%s %sswitched from tribe %s%s %sto %s%s", ChatColor.YELLOW, member.NAME, ChatColor.WHITE, member.tribe().COLOR, member.tribe().displayName, ChatColor.WHITE, COLOR, displayName));
-        member.tribe().unregisterMember(member.NAME);
+        member.tribe().unregisterMember(member.ID);
         member.switchToTribe(this);
     }
 
@@ -100,36 +100,36 @@ public class Tribe {
         //Manager.debugMessage("JSON setter: " + ID + " has " + activeMembers.size() + " active members");
     }
 
-    public void removeMember(String playerName) {
-        if (!members.containsKey(playerName)) {
+    public void removeMember(UUID playerID) {
+        if (!members.containsKey(playerID)) {
             throw new IllegalArgumentException(ChatColor.YELLOW + "Nothing happened, that player wasnt in a tribe in the first place");
         }
-        Manager.unRegisterMember(playerName); // fjerner at member er registrert hos manageren
-        members.get(playerName).remove();
-        members.remove(playerName);
-        Bukkit.broadcastMessage(String.format("%s%s %sleft tribe %s%s", ChatColor.YELLOW, playerName, ChatColor.WHITE, COLOR, ID));
-        Manager.handleMemberLeave(playerName);
+        Manager.unRegisterMember(playerID); // fjerner at member er registrert hos manageren
+        members.get(playerID).remove();
+        members.remove(playerID);
+        Bukkit.broadcastMessage(String.format("%s%s %sleft tribe %s%s", ChatColor.YELLOW, Bukkit.getOfflinePlayer(playerID).getName(), ChatColor.WHITE, COLOR, ID));
+        Manager.handleMemberLeave(playerID);
     }
 
-    public void unregisterMember(String playerName) { // used when u switch tribe
-        if (!members.containsKey(playerName)) {
+    public void unregisterMember(UUID playerID) { // used when u switch tribe
+        if (!members.containsKey(playerID)) {
             throw new IllegalArgumentException(ChatColor.YELLOW + "Nothing happened, that player wasnt in a tribe in the first place");
         }
-        members.remove(playerName);
+        members.remove(playerID);
     }
 
-    public int getDeaths(String playerName) {
-        if (!members.containsKey(playerName)){
-            throw new IllegalArgumentException(ChatColor.RED + playerName + " is not a member of this tribe!");
+    public int getDeaths(UUID playerID) {
+        if (!members.containsKey(playerID)){
+            throw new IllegalArgumentException(ChatColor.RED + Bukkit.getOfflinePlayer(playerID).getName() + " is not a member of this tribe (" + ID + ")!");
         }
-        return members.get(playerName).getDeaths();
+        return members.get(playerID).getDeaths();
     }
 
-    public boolean isAlive(String playerName) {
-        if (!members.containsKey(playerName)){
-            throw new IllegalArgumentException(ChatColor.RED + playerName + " is not a member of this tribe!");
+    public boolean isAlive(UUID playerID) {
+        if (!members.containsKey(playerID)){
+            throw new IllegalArgumentException(ChatColor.RED + Bukkit.getOfflinePlayer(playerID).getName() + " is not a member of this tribe (" + ID + ")!");
         }
-        return members.get(playerName).isAlive();
+        return members.get(playerID).isAlive();
     }
 
     public void death(UUID playerID) {

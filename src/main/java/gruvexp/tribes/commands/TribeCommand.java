@@ -51,17 +51,17 @@ public class TribeCommand implements CommandExecutor {
                     for (Tribe tribe : Manager.getTribes()) {
                         sender.sendMessage(tribe.COLOR + tribe.displayName() + " tribe:");
                         for (Member member : tribe.getMembers()) {
-                            String playerName = member.NAME;
-                            TextComponent playerStats = Component.text(String.format("%-12s", playerName)); // adder mellomrom så han blir 12 bokstaver lang
+                            UUID playerID = member.ID;
+                            TextComponent playerStats = Component.text(String.format("%-12s", member.NAME)); // adder mellomrom så han blir 12 bokstaver lang
                             playerStats = playerStats.append(Component.text(" - ")
-                                    .append(tribe.isAlive(playerName) ? Component.text("ALIVE", NamedTextColor.GREEN) : Component.text("DEAD", NamedTextColor.RED)));
-                            if (!tribe.isAlive(playerName)) {
+                                    .append(tribe.isAlive(playerID) ? Component.text("ALIVE", NamedTextColor.GREEN) : Component.text("DEAD", NamedTextColor.RED)));
+                            if (!tribe.isAlive(playerID)) {
                                 playerStats = playerStats.append(Component.text(", Respawntime: ", NamedTextColor.WHITE))
                                         .append(Component.text(member.getRespawnCooldown()))
                                         .append(Component.text("min"));
                             }
                             playerStats = playerStats.append(Component.text(", Deaths: ", NamedTextColor.WHITE))
-                                    .append(Component.text(tribe.getDeaths(playerName)));
+                                    .append(Component.text(tribe.getDeaths(playerID)));
                             playerStats = playerStats.append(Component.text(", Balance: "))
                                     .append(Component.text(member.getKromers() + " kr", NamedTextColor.GREEN));
 
@@ -116,7 +116,8 @@ public class TribeCommand implements CommandExecutor {
                     }
                     String tribeID = args[1];
                     String playerName = args[2];
-                    Manager.getTribe(tribeID).removeMember(playerName);
+                    UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
+                    Manager.getTribe(tribeID).removeMember(playerID);
                 }
                 case "switch" -> {
                     assert p != null;
