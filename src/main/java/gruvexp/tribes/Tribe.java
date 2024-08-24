@@ -162,7 +162,7 @@ public class Tribe {
     @SuppressWarnings("unused")
     @JsonProperty("revivalAltars") @JsonInclude(JsonInclude.Include.NON_NULL)
     private HashSet<RevivalAltar> getAltarsJSON() {
-        if (revivalAltars.size() == 0) {
+        if (revivalAltars.isEmpty()) {
             return null;
         }
         return new HashSet<>(revivalAltars.values());
@@ -208,12 +208,12 @@ public class Tribe {
 
     @JsonIgnore
     public boolean isActive() {
-        return activeMembers.size() != 0;
+        return !activeMembers.isEmpty();
     }
 
     @JsonIgnore
     public boolean isAlive() { // hvis alle spillerene som er online eller har cooldown er daue,
-        if (activeMembers.size() == 0) {
+        if (activeMembers.isEmpty()) {
             return true;
         }
         for (Member member : activeMembers) {
