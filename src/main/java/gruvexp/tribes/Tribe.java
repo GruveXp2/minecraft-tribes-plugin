@@ -91,10 +91,13 @@ public class Tribe {
 
     @SuppressWarnings("unused")
     @JsonProperty("members")
-    private void setMembersJSON(HashMap<UUID, Member> members) {
-        this.members = members;
-        this.members.values().forEach(p -> p.registerTribe(this));
-        activeMembers = members.values().stream()
+    private void setMembersJSON(HashSet<Member> members) {
+        this.members = new HashMap<>(members.size());
+        members.forEach(member -> {
+            this.members.put(member.ID, member);
+            member.registerTribe(this);
+        });
+        activeMembers = members.stream()
                 .filter(member -> !member.isAlive())
                 .collect(Collectors.toSet());
         //Manager.debugMessage("JSON setter: " + ID + " has " + activeMembers.size() + " active members");
