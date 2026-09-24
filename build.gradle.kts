@@ -26,8 +26,8 @@ val buildNumber: Int = if (buildNumberFile.exists()) {
 }
 
 group = "gruvexp"
-version = "1.0.0-$buildNumber"
-description = "The plugin used on the tribes server"
+version = "2.0.snapshot-$buildNumber"
+description = "The plugin used on the TribesInfinity server"
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))
 }
