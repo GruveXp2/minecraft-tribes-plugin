@@ -1,5 +1,5 @@
 name: Tribes
-version: '${project.version}'
+version: '${version}'
 main: gruvexp.tribes.Main
 api-version: 1.21
 commands:

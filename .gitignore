@@ -1,0 +1,6 @@
+/target/
+.gradle/
+build/
+/build-number.txt
+/.idea/
+*.iml
