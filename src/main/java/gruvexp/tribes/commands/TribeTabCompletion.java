@@ -1,6 +1,6 @@
 package gruvexp.tribes.commands;
 
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -39,7 +39,7 @@ public class TribeTabCompletion implements TabCompleter {
                 }
                 case "join" -> {
                     if (args.length == 2) {
-                        return new ArrayList<>(Manager.getTribeIDs());
+                        return new ArrayList<>(Tribes.getTribeIDs());
                     }
                     if (args.length == 3) {
                         return Bukkit.getOnlinePlayers().stream()
@@ -49,7 +49,7 @@ public class TribeTabCompletion implements TabCompleter {
                 }
                 case "switch" -> {
                     if (args.length == 2) {
-                        return new ArrayList<>(Manager.getTribeIDs());
+                        return new ArrayList<>(Tribes.getTribeIDs());
                     }
                     if (args.length == 3) {
                         return Bukkit.getOnlinePlayers().stream()
@@ -59,11 +59,11 @@ public class TribeTabCompletion implements TabCompleter {
                 }
                 case "leave", "kick" -> {
                     if (args.length == 2) {
-                        return new ArrayList<>(Manager.getTribeIDs());
+                        return new ArrayList<>(Tribes.getTribeIDs());
                     }
                     String tribeID = args[1];
                     if (args.length == 3) {
-                        return Manager.getTribe(tribeID).getMembers()
+                        return Tribes.getTribe(tribeID).getMembers()
                             .stream()
                             .map(member -> member.NAME)
                             .collect(Collectors.toCollection(ArrayList::new));

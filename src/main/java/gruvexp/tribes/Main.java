@@ -57,11 +57,11 @@ public final class Main extends JavaPlugin {
             getLogger().info("Cant load world \"" + worldName + "\", loading testworld instead");
             dataPath = Secrets.SERVER_PATH + testWorldName + "\\plugin data\\tribes.json";
         }
-        Manager.loadData(); // loading json data
+        Tribes.loadData(); // loading json data
         ItemManager.registerCoinItems(); // register coin items for all members from the json file
-        Manager.postInit(); // init objects that need access to their tribe object
+        Tribes.postInit(); // init objects that need access to their tribe object
         ItemManager.registerAltar();
-        Manager.pause();
+        Tribes.pause();
         if (WORLD.getTime() < 41*24000) {
             new NetherEndCooldown().runTaskTimer(this, 0L, 24000L);
         }
@@ -71,7 +71,7 @@ public final class Main extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        Manager.saveData();
+        Tribes.saveData();
         // Plugin shutdown logic
     }
 

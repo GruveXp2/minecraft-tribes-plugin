@@ -2,7 +2,7 @@ package gruvexp.tribes.commands;
 
 import gruvexp.tribes.ItemManager;
 import gruvexp.tribes.Main;
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.Member;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -80,7 +80,7 @@ public class JavaCommand implements CommandExecutor {
                                 throw new IllegalArgumentException("Error: argument <deaths> must be a number (/java hack set_deaths)");
                             }
                             UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
-                            Manager.getMember(playerID).setDeaths(deaths); // setter deaths
+                            Tribes.getMember(playerID).setDeaths(deaths); // setter deaths
                             Bukkit.broadcastMessage(String.format("%s%s hacked: set deaths of %s to %s", ChatColor.RED, p.getName(), playerName, deaths));
                         }
                         case "set_respawn_time" -> {
@@ -98,7 +98,7 @@ public class JavaCommand implements CommandExecutor {
                             } catch (NumberFormatException e) {
                                 throw new IllegalArgumentException("Error: argument <respawn_time> must be a number (/java hack set_respawn_time)");
                             }
-                            Manager.getMember(playerID).haccRespawnCooldown(respawnTime); // setter respawncooldown i minutter
+                            Tribes.getMember(playerID).haccRespawnCooldown(respawnTime); // setter respawncooldown i minutter
                             Bukkit.broadcastMessage(String.format("%s%s hacked: set respawncooldown of %s to %s", ChatColor.RED, p.getName(), playerName, respawnTime));
                         }
                         case "starter_coins", "coins", "get_coins" -> {
@@ -116,7 +116,7 @@ public class JavaCommand implements CommandExecutor {
                             }
                             UUID targetPlayerID = targetPlayer.getUniqueId();
                             targetPlayer.getInventory().addItem(ItemManager.getStarterItems(targetPlayerID));
-                            Manager.getMember(targetPlayerID).addKromers(320);
+                            Tribes.getMember(targetPlayerID).addKromers(320);
                         }
                         case "change_registered_balance" -> {
                             if (args.length < 4) {
@@ -124,7 +124,7 @@ public class JavaCommand implements CommandExecutor {
                             }
                             String targetPlayerName = args[2];
                             UUID playerID = Bukkit.getOfflinePlayer(targetPlayerName).getUniqueId();
-                            Member member = Manager.getMember(playerID);
+                            Member member = Tribes.getMember(playerID);
                             if (member == null) {
                                 throw new IllegalArgumentException("That member doesnt exist!");
                             }
@@ -143,8 +143,8 @@ public class JavaCommand implements CommandExecutor {
                         }
                         case "altars", "as" -> {
                             StringBuilder out = new StringBuilder("Current altars:\n");
-                            for (String tribeID : Manager.getTribeIDs()) {
-                                out.append("\n").append(tribeID).append(": ").append(Manager.getTribe(tribeID).getAltarInfo());
+                            for (String tribeID : Tribes.getTribeIDs()) {
+                                out.append("\n").append(tribeID).append(": ").append(Tribes.getTribe(tribeID).getAltarInfo());
                             }
                             p.sendMessage(out.toString());
                         }
@@ -159,9 +159,9 @@ public class JavaCommand implements CommandExecutor {
                             }
                             String color = args[2];
                             sender.sendMessage(Component.text(color, NamedTextColor.NAMES.value(color)));
-                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getUniqueId()).tribe().COLOR.toString() + "...");
-                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getUniqueId()).tribe().COLOR.name() + "...");
-                            p.sendMessage("Your tribe has color: " + Manager.getMember(p.getUniqueId()).tribe().COLOR + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().COLOR.toString() + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().COLOR.name() + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().COLOR + "...");
                         }
                         default -> throw new IllegalArgumentException("Error: wrong argument <hack> (/java hack)");
                     }

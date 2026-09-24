@@ -1,6 +1,6 @@
 package gruvexp.tribes.tasks;
 
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.Member;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -23,7 +23,7 @@ public class RespawnCooldown extends BukkitRunnable {
 
     public RespawnCooldown(UUID playerID, int minutes) {
         this.playerID = playerID;
-        member = Manager.getMember(playerID);
+        member = Tribes.getMember(playerID);
         p = Bukkit.getPlayer(playerID);
         if (p != null) {
             bar.addPlayer(p);
@@ -45,7 +45,7 @@ public class RespawnCooldown extends BukkitRunnable {
         if (secondsLeft < 1) {
             secondsLeft = 1;
             run();
-            Manager.stopCooldownReduction();
+            Tribes.stopCooldownReduction();
         }
     }
 
@@ -63,7 +63,7 @@ public class RespawnCooldown extends BukkitRunnable {
 
     @Override
     public void run() {
-        if (Manager.isPaused()) {return;}
+        if (Tribes.INSTANCE.isPaused()) {return;}
         secondsLeft--;
         if (secondsLeft % 60 == 0) {
             // minutter i tribe cooldown left reduseres med 1, hvis det blir 0 så respawner man
@@ -76,7 +76,7 @@ public class RespawnCooldown extends BukkitRunnable {
                 } else {
                     //Bukkit.getLogger().info("the timer ran out, offline");
                 Bukkit.broadcastMessage(ChatColor.YELLOW + member.NAME + "'s respawn cooldown ran out");
-                    Manager.getMember(playerID).tribe().handleLeaveActive(playerID);
+                    Tribes.getMember(playerID).tribe().handleLeaveActive(playerID);
                 }
                 cancel();
             }

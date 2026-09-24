@@ -48,7 +48,7 @@ public class ItemListener implements Listener {
         Item item = e.getItem();
         ItemStack itemStack = item.getItemStack();
         Player p = (Player) e.getEntity();
-        Member pickupingMember = Manager.getMember(p.getUniqueId());
+        Member pickupingMember = Tribes.getMember(p.getUniqueId());
         if (pickupingMember == null) {
             Bukkit.broadcast(Component.text("Error! Player " + p.getName() + " tried to pick up a coin/head but arent registered in the tribe plugin. pls contact gruve"));
             return;
@@ -68,7 +68,7 @@ public class ItemListener implements Listener {
             if (e.getAction() == InventoryAction.PICKUP_ALL || e.getAction() == InventoryAction.PICKUP_HALF || e.getAction() == InventoryAction.PICKUP_ONE || e.getAction() == InventoryAction.PICKUP_SOME || e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                 ItemStack itemStack = e.getCurrentItem();
                 Player p = (Player) e.getWhoClicked();
-                Member member = Manager.getMember(p.getUniqueId());
+                Member member = Tribes.getMember(p.getUniqueId());
                 if (member == null) return;
                 assert itemStack != null;
                 considerOwnerChange(itemStack, member);
@@ -81,7 +81,7 @@ public class ItemListener implements Listener {
             inventory = e.getView().getTopInventory();
             Location loc = inventory.getLocation();
             //Manager.debugMessage("inv loc: " + Utils.toString(loc));
-            RevivalAltar altar = Manager.getAltar(loc);
+            RevivalAltar altar = Tribes.getAltar(loc);
             ItemStack clickedItem = e.getCurrentItem();
 
             if (clickedItem.getType() == Material.FIREWORK_STAR && clickedItem.getItemMeta().hasCustomModelData() && clickedItem.getItemMeta().getCustomModelData() == 77012) { // trykka på settings itemet
@@ -114,7 +114,7 @@ public class ItemListener implements Listener {
             Inventory inventory = e.getInventory();
             //Manager.debugMessage("A");
             Location loc = inventory.getLocation();
-            RevivalAltar altar = Manager.getAltar(loc);
+            RevivalAltar altar = Tribes.getAltar(loc);
             if (item.getType() == Material.FIREWORK_STAR && item.getItemMeta().hasCustomModelData() && item.getItemMeta().getCustomModelData() == 77012) { // trykka på settings itemet
                 //Manager.debugMessage("A1");
                 e.setCancelled(true); // sånn at de ikke plukker den greia opp
@@ -142,13 +142,13 @@ public class ItemListener implements Listener {
             if (lore != null) {
                 String prevPlayerIDstr = meta.getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
                 UUID prevPlayerID = getUUIDFromCoinItem(prevPlayerIDstr, lore);
-                Member prevOwner = Manager.getMember(prevPlayerID);
+                Member prevOwner = Tribes.getMember(prevPlayerID);
                 if (prevOwner == null) {
                     Bukkit.broadcast(Component.text("Error: failed to change coin owners (pls contact gruve)"));
                     return false;
                 }
                 int kromers = ItemManager.toKromer(itemStack);
-                lore.set(lore.size() - 1, Component.text(pickupingMember.NAME).color(Manager.toTextColor(pickupingMember.tribe().COLOR)));
+                lore.set(lore.size() - 1, Component.text(pickupingMember.NAME).color(Tribes.toTextColor(pickupingMember.tribe().COLOR)));
                 meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingMember.ID.toString());
                 meta.lore(lore);
                 pickupingMember.addKromers(kromers); // adder kromers til playeren som plukka de opp

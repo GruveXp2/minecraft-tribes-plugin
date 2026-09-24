@@ -33,7 +33,7 @@ public class Member implements PostInit{
         deaths = 0;
         respawnCooldown = 0;
         kromers = 0;
-        Manager.registerMember(this);
+        Tribes.registerMember(this);
         ItemManager.registerCoinItems(ID);
         ItemManager.registerCoinRecipes(ID);
     }
@@ -45,9 +45,9 @@ public class Member implements PostInit{
         this.deaths = deaths;
         this.respawnCooldown = respawnCooldown;
         this.kromers = kromers;
-        Manager.registerMember(this);
+        Tribes.registerMember(this);
         if (respawnCooldown > 0) {
-            Manager.schedulePostInit(this);
+            Tribes.schedulePostInit(this);
         }
     }
 
@@ -57,7 +57,7 @@ public class Member implements PostInit{
         respawnCooldownTask.runTaskTimer(Main.getPlugin(), 0L, 20L);
         Player p = Bukkit.getPlayer(ID);
         if (p != null) {
-            Manager.setDeathLocation(ID, p.getLocation());
+            Tribes.setDeathLocation(ID, p.getLocation());
         }
     }
 
@@ -96,7 +96,7 @@ public class Member implements PostInit{
                 deathLocation = Main.WORLD.getSpawnLocation();
             }
         }
-        Manager.setDeathLocation(ID, deathLocation);
+        Tribes.setDeathLocation(ID, deathLocation);
         respawnCooldown = switch (deaths) {
             case 1 -> 2;
             case 2 -> 5;
@@ -107,7 +107,7 @@ public class Member implements PostInit{
         };
         respawnCooldownTask = new RespawnCooldown(ID, respawnCooldown);
         respawnCooldownTask.runTaskTimer(Main.getPlugin(), 0L, 20L);
-        Manager.messagePlayers(String.format("Total deaths: %s%s%s, respawn time: %s%s",
+        Tribes.messagePlayers(String.format("Total deaths: %s%s%s, respawn time: %s%s",
                 ChatColor.RED, deaths, ChatColor.WHITE, ChatColor.GOLD, respawnCooldown));
     }
 
@@ -159,15 +159,15 @@ public class Member implements PostInit{
             if (respawned) {return;}
             Bukkit.getPlayer(ID).setGameMode(GameMode.SPECTATOR);
             respawnCooldownTask.playerJoined();
-            if (Manager.getDeathLocation(ID) == null) {
-                Manager.setDeathLocation(ID, Objects.requireNonNull(Bukkit.getPlayer(ID)).getLocation());
+            if (Tribes.getDeathLocation(ID) == null) {
+                Tribes.setDeathLocation(ID, Objects.requireNonNull(Bukkit.getPlayer(ID)).getLocation());
             }
         }
     }
 
     public boolean respawnAtAltarIfAvailable() { // kalles fra andre steder. Er ikke sikkert at playeren respawner, kommer an på om det er alter tilgjengelige
         // forventes at playeren både er online og dau
-        RevivalAltar altar = Manager.getAvailableAltar(ID);
+        RevivalAltar altar = Tribes.getAvailableAltar(ID);
         if (altar != null) {
             Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> {
                 Player p = Bukkit.getPlayer(ID);

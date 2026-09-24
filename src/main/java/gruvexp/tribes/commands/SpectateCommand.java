@@ -1,6 +1,6 @@
 package gruvexp.tribes.commands;
 
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.Tribe;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
@@ -31,7 +31,7 @@ public class SpectateCommand implements CommandExecutor {
             if (p.getGameMode() != GameMode.SPECTATOR) {
                 throw new IllegalArgumentException("You must be in spectator mode to use this command");
             }
-            Tribe tribe = Manager.getMember(p.getUniqueId()).tribe();
+            Tribe tribe = Tribes.getMember(p.getUniqueId()).tribe();
             if (tribe == null) {
                 throw new IllegalArgumentException("You need to be in a tribe to spectate");
             }
@@ -40,7 +40,7 @@ public class SpectateCommand implements CommandExecutor {
                 throw new IllegalArgumentException("The player you specified is either not online or doesnt exist");
             }
             UUID targetPlayerID = q.getUniqueId();
-            Tribe otherTribe = Manager.getMember(targetPlayerID).tribe();
+            Tribe otherTribe = Tribes.getMember(targetPlayerID).tribe();
             if (tribe != otherTribe) {
                 p.sendMessage("Sending spectate request to " + targetPlayerID);
 

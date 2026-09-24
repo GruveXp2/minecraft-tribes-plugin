@@ -1,7 +1,7 @@
 package gruvexp.tribes.listeners;
 
 import gruvexp.tribes.Main;
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.Member;
 import gruvexp.tribes.Tribe;
 import org.bukkit.GameMode;
@@ -25,13 +25,13 @@ public class MoveListener implements Listener {
     }
 
     private void pauseMovement(Player p, float yaw, float pitch) {
-        if (!Manager.isPaused()) {return;}
+        if (!Tribes.INSTANCE.isPaused()) {return;}
         UUID playerID = p.getUniqueId();
-        Member member = Manager.getMember(playerID);
+        Member member = Tribes.getMember(playerID);
         if (member == null) {return;}
         Tribe tribe = member.tribe();
         if (tribe == null) {return;}
-        Location loc = Manager.getPauseLocation(playerID);
+        Location loc = Tribes.getPauseLocation(playerID);
         loc.setYaw(yaw);
         loc.setPitch(pitch);
         p.teleport(loc);
@@ -40,13 +40,13 @@ public class MoveListener implements Listener {
     private void spectatorMovement(Player p) {
         if (p.getGameMode() != GameMode.SPECTATOR) {return;}
         UUID playerID = p.getUniqueId();
-        if (Manager.getMember(playerID).tribe() == null) {return;}
+        if (Tribes.getMember(playerID).tribe() == null) {return;}
         if (p.getSpectatorTarget() != null) {return;}
         if (Main.WORLD.getName().equals(Main.testWorldName)) {return;}
-        Location deathLoc = Manager.getDeathLocation(playerID);
+        Location deathLoc = Tribes.getDeathLocation(playerID);
         if (deathLoc == null) {
             deathLoc = p.getLastDeathLocation();
-            Manager.setDeathLocation(p.getUniqueId(), deathLoc);
+            Tribes.setDeathLocation(p.getUniqueId(), deathLoc);
             if (deathLoc == null) {return;}
         }
         Location pLoc = p.getLocation();

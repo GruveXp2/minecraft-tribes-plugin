@@ -1,6 +1,6 @@
 package gruvexp.tribes.tasks;
 
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.RevivalAltar;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -35,7 +35,7 @@ public class AltarCooldown extends BukkitRunnable { // skal runnes 1 gang i minu
 
     @Override
     public void run() {
-        if (Manager.isPaused()) {return;}
+        if (Tribes.INSTANCE.isPaused()) {return;}
         minutesLeft--;
         // minutter i tribe cooldown left reduseres med 1, hvis det blir 0 så respawner man
         ALTAR.reduceCooldown(); // reduserer med 1 minutt. handler hva som skjer om det er 0min igjen.

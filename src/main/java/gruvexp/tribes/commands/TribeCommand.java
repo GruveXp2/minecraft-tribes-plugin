@@ -1,7 +1,7 @@
 package gruvexp.tribes.commands;
 
 import gruvexp.tribes.Main;
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.Member;
 import gruvexp.tribes.Tribe;
 import net.kyori.adventure.text.Component;
@@ -38,7 +38,7 @@ public class TribeCommand implements CommandExecutor {
                     int totalCoins = 0;
                     int LINES = 100; // hvor mange |
                     HashMap<Tribe, Integer> tribeBalance = new HashMap<>(); // brukt for å beregne hvor mange kr hver tribe har i kromerDisctribution
-                    for (Tribe tribe : Manager.getTribes()) {
+                    for (Tribe tribe : Tribes.getTribes()) {
                         tribeBalance.put(tribe, tribe.getCoinBalance());
                         totalCoins += tribe.getCoinBalance();
                     }
@@ -47,8 +47,8 @@ public class TribeCommand implements CommandExecutor {
                         kromerDistribution = kromerDistribution.append(Component.text("|".repeat(entry.getValue() * LINES / totalCoins), NamedTextColor.NAMES.value(entry.getKey().COLOR.name().toLowerCase())));
                     }
                     sender.sendMessage(kromerDistribution); // bar som viser fordelinga av kromers, fargelagt
-                    sender.sendMessage(Component.text("Kromer pool: ").append(Component.text(Manager.getKromerPool() + " kr", NamedTextColor.GREEN))); // kromer pool
-                    for (Tribe tribe : Manager.getTribes()) {
+                    sender.sendMessage(Component.text("Kromer pool: ").append(Component.text(Tribes.getKromerPool() + " kr", NamedTextColor.GREEN))); // kromer pool
+                    for (Tribe tribe : Tribes.getTribes()) {
                         int balance = tribe.getMembers().stream().mapToInt(Member::getKromers).sum();
                         sender.sendMessage(tribe.COLOR + tribe.displayName() + " tribe: " + ChatColor.GREEN + balance + "kr ");
                         for (Member member : tribe.getMembers()) {
@@ -75,7 +75,7 @@ public class TribeCommand implements CommandExecutor {
                         throw new IllegalArgumentException("Not enough args!");
                     }
                     String tribeID = args[1];
-                    if (Manager.tribeExists(tribeID)) {
+                    if (Tribes.tribeExists(tribeID)) {
                         throw new IllegalArgumentException("Tribe already exists!");
                     }
                     String color = args[2].toUpperCase();
@@ -85,10 +85,10 @@ public class TribeCommand implements CommandExecutor {
                             if (i > 3) {displayName.append(" ");}
                             displayName.append(args[i]);
                         }
-                        Manager.addTribe(new Tribe(tribeID, ChatColor.valueOf(color), displayName.toString()));
+                        Tribes.addTribe(new Tribe(tribeID, ChatColor.valueOf(color), displayName.toString()));
                         Bukkit.broadcast(Component.text("New tribe created: " + displayName, NamedTextColor.GREEN));
                     } else {
-                        Manager.addTribe(new Tribe(tribeID, ChatColor.valueOf(color), tribeID));
+                        Tribes.addTribe(new Tribe(tribeID, ChatColor.valueOf(color), tribeID));
                         Bukkit.broadcast(Component.text("New tribe created: " + tribeID, NamedTextColor.GREEN));
                     }
                 }
@@ -102,7 +102,7 @@ public class TribeCommand implements CommandExecutor {
                     if (joiningPlayer == null) {
                         throw new IllegalArgumentException("No online player called \"" + playerName + "\" was found");
                     }
-                    Tribe tribe = Manager.getTribe(tribeID);
+                    Tribe tribe = Tribes.getTribe(tribeID);
                     tribe.addMember(joiningPlayer);
                     Player q = Bukkit.getPlayerExact(playerName);
                     if (q != null) {
@@ -118,7 +118,7 @@ public class TribeCommand implements CommandExecutor {
                     String tribeID = args[1];
                     String playerName = args[2];
                     UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
-                    Manager.getTribe(tribeID).removeMember(playerID);
+                    Tribes.getTribe(tribeID).removeMember(playerID);
                 }
                 case "switch" -> {
                     assert p != null;
@@ -128,11 +128,11 @@ public class TribeCommand implements CommandExecutor {
                     String tribeID = args[1];
                     String playerName = args[2];
                     UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
-                    Member member = Manager.getMember(playerID);
+                    Member member = Tribes.getMember(playerID);
                     if (member == null) {
                         throw new IllegalArgumentException("That player wasnt in a tribe to begin with!");
                     }
-                    Tribe tribe = Manager.getTribe(tribeID);
+                    Tribe tribe = Tribes.getTribe(tribeID);
                     tribe.migrateMemberToThisTribe(member);
                     Player q = Bukkit.getPlayerExact(playerName);
                     if (q != null) {
@@ -140,25 +140,25 @@ public class TribeCommand implements CommandExecutor {
                     }
                 }
                 case "pause" -> {
-                    if (Manager.isPaused()) {
+                    if (Tribes.INSTANCE.isPaused()) {
                         throw new IllegalArgumentException("The game is already paused! Use /tribe unpause to unpause");
                     } else {
-                        Manager.pause();
+                        Tribes.pause();
                     }
                 }
                 case "unpause" -> {
-                    if (Manager.isPaused()) {
-                        Manager.unPause();
+                    if (Tribes.INSTANCE.isPaused()) {
+                        Tribes.unPause();
                     } else {
                         throw new IllegalArgumentException("The game is already unpaused! Use /tribe pause to pause");
                     }
                 }
                 case "toggle_friendly_fire" -> {
-                    Manager.friendlyFire = !Manager.friendlyFire;
+                    Tribes.friendlyFire = !Tribes.friendlyFire;
                     assert p != null;
                     String message = "[" + p.getName() + "]: Pvp between tribe members set to: ";
-                    message += Manager.friendlyFire ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED";
-                    Manager.messagePlayers(message);
+                    message += Tribes.friendlyFire ? ChatColor.GREEN + "ENABLED" : ChatColor.RED + "DISABLED";
+                    Tribes.messagePlayers(message);
                 }
                 case "test" -> {
                     assert p != null;

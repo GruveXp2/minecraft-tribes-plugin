@@ -1,7 +1,7 @@
 package gruvexp.tribes.listeners;
 
 import gruvexp.tribes.Main;
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.Member;
 import gruvexp.tribes.Tribe;
 import org.bukkit.GameMode;
@@ -20,7 +20,7 @@ public class JoinListener implements Listener {
         Player p = e.getPlayer();
         p.setOp(Main.WORLD.getName().equals(Main.testWorldName)); // if your in the testing world then you get free admin to test features
         UUID playerID = p.getUniqueId();
-        Member member = Manager.getMember(playerID);
+        Member member = Tribes.getMember(playerID);
         if (member == null) {
             p.setGameMode(GameMode.SURVIVAL); // fikser bøgg at playeren er i creative etter at kingdoms serveren var på rett før
             return; // Player is not a member of the game

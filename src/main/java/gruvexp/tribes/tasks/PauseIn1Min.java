@@ -1,7 +1,7 @@
 package gruvexp.tribes.tasks;
 
 import gruvexp.tribes.Main;
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
@@ -34,7 +34,7 @@ public class PauseIn1Min extends BukkitRunnable {
         secondsLeft --;
         if (secondsLeft <= 0) {
             bar.removeAll();
-            Manager.pause();
+            Tribes.pause();
             cancel();
         }
         bar.setProgress((double) secondsLeft / 60);

@@ -64,7 +64,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         }
         Hopper hopper = (Hopper) block.getState();
         hopper.getInventory().setItem(4, getActivationItem(0, 0, false, false)); // adder settings item
-        Manager.registerAltar(loc, this);
+        Tribes.registerAltar(loc, this);
         tribe.registerAltar(loc, this);
         if (activated && cooldown > 0) { // bare start cooldown dersom alteret er aktivert og det er en cooldown
             startNewCooldown();
@@ -77,7 +77,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         this.cooldown = cooldown;
         this.storedHeads = Objects.requireNonNullElseGet(storedHeads, HashMap::new);
         this.storedKromer = storedKromer;
-        Manager.schedulePostInit(this);
+        Tribes.schedulePostInit(this);
         if (cooldown > 0) { // bare start cooldown dersom alteret er aktivert og det er en cooldown
             startNewCooldown();
         }
@@ -88,7 +88,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
     }
 
     public void postInit() {
-        Manager.registerAltar(LOCATION, this);
+        Tribes.registerAltar(LOCATION, this);
         TRIBE.registerAltar(LOCATION, this);
         // skjekker om det er hode oppå
         Block headBlock = LOCATION.clone().add(0, 1, 0).getBlock();
@@ -135,7 +135,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
     public void selectPlayer(UUID playerID) {
         selectedPlayerID = playerID;
         if (cooldown == 0 && playerID != null) {
-            Manager.provideAltar(this);
+            Tribes.provideAltar(this);
         }
         updateInfo();
     }
@@ -208,7 +208,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         }
         item.setAmount(0); // alle coins blir plukka opp (de leveres tilbake igjen seinere om det er no til overs)
         UUID coinOwner = UUID.fromString(coinOwnerIDStr);
-        Manager.getMember(coinOwner).addKromers(-itemKromerAmount); // removes the coin from the user. the coins will be stored inside the altar, but wont go into the pool before the altar is fully activated
+        Tribes.getMember(coinOwner).addKromers(-itemKromerAmount); // removes the coin from the user. the coins will be stored inside the altar, but wont go into the pool before the altar is fully activated
         this.coinOwner = coinOwner;
         storedKromer += itemKromerAmount;
     }
@@ -226,7 +226,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
             }
         }
         storedKromer -= amount;
-        Manager.getMember(coinOwner).addKromers(amount); // playeren får coins tilbake
+        Tribes.getMember(coinOwner).addKromers(amount); // playeren får coins tilbake
     }
 
     private void activate() {
@@ -239,7 +239,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
                 ((ItemDisplay) entity).setItemStack(ItemManager.ACTIVATED_REVIVAL_ALTAR);
             }
         }
-        Manager.addKromersToPool(ACTIVATION_COST_KROMER);
+        Tribes.addKromersToPool(ACTIVATION_COST_KROMER);
         Hopper altar = (Hopper) Main.WORLD.getBlockAt(LOCATION).getState();
         Inventory inventory = altar.getInventory();
         inventory.setItem(4, getRespawnItem());
@@ -270,7 +270,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         cooldown = 60;
         startNewCooldown();
         updateInfo();
-        Manager.withdrawAltar(this);
+        Tribes.withdrawAltar(this);
         selectedPlayerID = null;
     }
 
@@ -284,12 +284,12 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
 
     private void cooldownEnded() {
         if (!Objects.equals(selectedPlayerID, "NONE")) {
-            Manager.provideAltar(this);
+            Tribes.provideAltar(this);
         }
     }
 
     public void remove() { // spawner itemsene som var inni og unregistrerer
-        Manager.unRegisterAltar(LOCATION);
+        Tribes.unRegisterAltar(LOCATION);
         TRIBE.unRegisterAltar(LOCATION);
 
         ItemStack altarItem = isActivated() ? ItemManager.ACTIVATED_REVIVAL_ALTAR : ItemManager.REVIVAL_ALTAR;
@@ -370,12 +370,12 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
     private ItemStack getRespawnItem() {
         // Shows selected player
         String selectedPlayer = "None";
-        if (Manager.getMember(selectedPlayerID) != null) selectedPlayer = Manager.getMember(selectedPlayerID).NAME;
+        if (Tribes.getMember(selectedPlayerID) != null) selectedPlayer = Tribes.getMember(selectedPlayerID).NAME;
         Component playerComp = Component.text("Player: " + selectedPlayer + ". ");
         Component playerInfo; // shows additional info like cooldown timer
 
         if (selectedPlayerID != null) {
-            Member member = Manager.getMember(selectedPlayerID);
+            Member member = Tribes.getMember(selectedPlayerID);
             if (member != null) {
                 if (!member.isAlive()) {
                     if (member.isOnline()) {
@@ -429,7 +429,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
 
         // Click event (Click to <do something>)
         Component clickText = Component.text("");
-        Member member = Manager.getMember(selectedPlayerID);
+        Member member = Tribes.getMember(selectedPlayerID);
         if (member != null && !member.isAlive() && member.isOnline()) {
             if (reducedTime >= cooldown) {
                 clickText = Component.text("CLICK TO RESPAWN NOW ", NamedTextColor.GREEN)

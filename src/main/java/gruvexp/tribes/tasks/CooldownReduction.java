@@ -1,6 +1,6 @@
 package gruvexp.tribes.tasks;
 
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
@@ -18,7 +18,7 @@ public class CooldownReduction extends BukkitRunnable {
         for (RespawnCooldown respawnCooldown : respawnCooldowns) {
             respawnCooldown.reduceCooldown();
         }
-        if (!Manager.isReducingCooldowns()) {
+        if (!Tribes.INSTANCE.isReducingCooldowns()) {
             cancel();
         }
     }

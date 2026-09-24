@@ -52,13 +52,13 @@ public class Tribe {
         String playerName = p.getName();
         if (members.containsKey(playerID)) {
             throw new IllegalArgumentException(ChatColor.RED + "Player " + playerName + " is already in this tribe!");
-        } else if (Manager.getMember(playerID) != null && Manager.getMember(playerID).tribe() != this) {
+        } else if (Tribes.getMember(playerID) != null && Tribes.getMember(playerID).tribe() != this) {
             throw new IllegalArgumentException(ChatColor.RED + "Player " + playerName + " is already in another tribe!");
         }
         members.put(playerID, new Member(playerName, this));
         Bukkit.broadcastMessage(String.format("%s%s %sjoined tribe %s%s", ChatColor.YELLOW, playerName, ChatColor.WHITE, COLOR, displayName));
-        Manager.considerPauseToggle();
-        Manager.handlePlayerJoin(p);
+        Tribes.considerPauseToggle();
+        Tribes.handlePlayerJoin(p);
     }
 
     public void migrateMemberToThisTribe(Member member) {
@@ -107,11 +107,11 @@ public class Tribe {
         if (!members.containsKey(playerID)) {
             throw new IllegalArgumentException(ChatColor.YELLOW + "Nothing happened, that player wasnt in a tribe in the first place");
         }
-        Manager.unRegisterMember(playerID); // fjerner at member er registrert hos manageren
+        Tribes.unRegisterMember(playerID); // fjerner at member er registrert hos manageren
         members.get(playerID).remove();
         members.remove(playerID);
         Bukkit.broadcastMessage(String.format("%s%s %sleft tribe %s%s", ChatColor.YELLOW, Bukkit.getOfflinePlayer(playerID).getName(), ChatColor.WHITE, COLOR, ID));
-        Manager.handleMemberLeave(playerID);
+        Tribes.handleMemberLeave(playerID);
     }
 
     public void unregisterMember(UUID playerID) { // used when u switch tribe
@@ -147,8 +147,8 @@ public class Tribe {
             break;
         }
         members.get(playerID).die();
-        Manager.considerCooldownReduction();
-        Manager.handleDeath(playerID); // setter isSpectating til false
+        Tribes.considerCooldownReduction();
+        Tribes.handleDeath(playerID); // setter isSpectating til false
     }
 
     public void registerAltar(Location loc, RevivalAltar altar) {
@@ -193,7 +193,7 @@ public class Tribe {
         Member member = getMember(playerID);
         member.playerJoined();
         activeMembers.add(member);
-        Manager.handlePlayerJoin(p);
+        Tribes.handlePlayerJoin(p);
         ItemManager.registerCoinRecipes(playerID);
     }
 
@@ -201,8 +201,8 @@ public class Tribe {
         Member member = getMember(playerID);
         if (member.isAlive()) {
             activeMembers.remove(member);
-            Manager.considerPauseToggle();
-            Manager.considerCooldownReduction();
+            Tribes.considerPauseToggle();
+            Tribes.considerCooldownReduction();
         }
     }
 

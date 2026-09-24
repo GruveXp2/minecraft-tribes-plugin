@@ -1,6 +1,6 @@
 package gruvexp.tribes.commands;
 
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.Tribe;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -20,13 +20,13 @@ public class SpectateTabCompleter implements TabCompleter {
             Player p = (Player) sender;
             UUID playerID = p.getUniqueId();
             try {
-                Tribe tribe = Manager.getMember(playerID).tribe();
+                Tribe tribe = Tribes.getMember(playerID).tribe();
                 if (tribe == null) {
                     throw new IllegalArgumentException("You need to be in a tribe to use this command");
                 }
-                return Manager.getMemberIDs().stream()
+                return Tribes.getMemberIDs().stream()
                         .filter(id -> Bukkit.getPlayer(id) != null)
-                        .map(id -> Manager.getMember(id).NAME)
+                        .map(id -> Tribes.getMember(id).NAME)
                         .collect(Collectors.toList()); // returnerer kun online members
             } catch (IllegalArgumentException e) {
                 return List.of(ChatColor.RED + e.getMessage());

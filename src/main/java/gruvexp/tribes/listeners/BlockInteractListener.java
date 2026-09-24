@@ -1,7 +1,7 @@
 package gruvexp.tribes.listeners;
 
 import gruvexp.tribes.Main;
-import gruvexp.tribes.Manager;
+import gruvexp.tribes.Tribes;
 import gruvexp.tribes.RevivalAltar;
 import net.kyori.adventure.text.Component;
 import org.bukkit.*;
@@ -74,7 +74,7 @@ public class BlockInteractListener implements Listener { // RESPAWN ALTER DATA: 
         // registrer alteret
         UUID playerID = e.getPlayer().getUniqueId();
         Location blockLoc = new Location(loc.getWorld(), loc.getBlockX(), loc.getBlockY(), loc.getBlockZ());
-        RevivalAltar altar = new RevivalAltar(Manager.getMember(playerID).tribe(), blockLoc, meta.getCustomModelData() == 77011); // HUSK Å GJØR AT MAN KAN SETTE NED AKTIVERTE ALTERE
+        RevivalAltar altar = new RevivalAltar(Tribes.getMember(playerID).tribe(), blockLoc, meta.getCustomModelData() == 77011); // HUSK Å GJØR AT MAN KAN SETTE NED AKTIVERTE ALTERE
         altar.updateInfo(hopper.getInventory());
     }
 
@@ -99,12 +99,12 @@ public class BlockInteractListener implements Listener { // RESPAWN ALTER DATA: 
                     entity.remove();
                 }
             }
-            RevivalAltar altar = Manager.getAltar(loc);
+            RevivalAltar altar = Tribes.getAltar(loc);
             altar.remove(); // fjerner alteret i systemet og dropper items som har blitt consuma
         } else if (e.getBlock().getType() == Material.PLAYER_HEAD) { // når man fjerner hode over et alter
             Location loc = e.getBlock().getLocation();
             loc.add(0, -1, 0); // flytter oss ned 1 blocc for å skjekke om det er et alter der
-            RevivalAltar altar = Manager.getAltar(loc);
+            RevivalAltar altar = Tribes.getAltar(loc);
             if (altar == null) return;
             altar.selectPlayer(null);
         }
@@ -118,7 +118,7 @@ public class BlockInteractListener implements Listener { // RESPAWN ALTER DATA: 
         } else if (e.getBlockPlaced().getType() == Material.PLAYER_HEAD) { // når man plasserer et hode på et alter
             Location loc = e.getBlockPlaced().getLocation();
             loc.add(0, -1, 0); // flytter oss ned 1 blocc for å skjekke om det er et alter der
-            RevivalAltar altar = Manager.getAltar(loc);
+            RevivalAltar altar = Tribes.getAltar(loc);
             if (altar == null) return;
             Skull head = (Skull) e.getBlock().getState();
             OfflinePlayer p = head.getOwningPlayer();

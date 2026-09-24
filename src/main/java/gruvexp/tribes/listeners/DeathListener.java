@@ -1,18 +1,13 @@
 package gruvexp.tribes.listeners;
 
 import gruvexp.tribes.*;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.*;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.persistence.PersistentDataType;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -21,7 +16,7 @@ public class DeathListener implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        Member member = Manager.getMember(p.getUniqueId());
+        Member member = Tribes.getMember(p.getUniqueId());
         if (member == null) {
             return; // Player is not a member of the game
         }
