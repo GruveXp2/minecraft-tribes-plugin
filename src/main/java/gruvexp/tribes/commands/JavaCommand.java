@@ -3,7 +3,6 @@ package gruvexp.tribes.commands;
 import gruvexp.tribes.ItemManager;
 import gruvexp.tribes.Main;
 import gruvexp.tribes.Tribes;
-import gruvexp.tribes.Member;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -112,9 +111,9 @@ public class JavaCommand implements CommandExecutor {
                             }
                             String color = args[2];
                             sender.sendMessage(Component.text(color, NamedTextColor.NAMES.value(color)));
-                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().COLOR.toString() + "...");
-                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().COLOR.name() + "...");
-                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().COLOR + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().color.toString() + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().color.name() + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().color + "...");
                         }
                         default -> throw new IllegalArgumentException("Error: wrong argument <hack> (/java hack)");
                     }

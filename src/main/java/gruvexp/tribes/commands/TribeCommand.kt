@@ -1,20 +1,10 @@
 package gruvexp.tribes.commands
 
 import gruvexp.tribes.Main
-import gruvexp.tribes.Member
 import gruvexp.tribes.Tribe
 import gruvexp.tribes.Tribes
-import gruvexp.tribes.Tribes.addTribe
-import gruvexp.tribes.Tribes.getMember
-import gruvexp.tribes.Tribes.getTribe
-import gruvexp.tribes.Tribes.getTribes
-import gruvexp.tribes.Tribes.isPaused
-import gruvexp.tribes.Tribes.kromerPool
-import gruvexp.tribes.Tribes.messagePlayers
-import gruvexp.tribes.Tribes.pause
-import gruvexp.tribes.Tribes.tribeExists
-import gruvexp.tribes.Tribes.unPause
 import net.kyori.adventure.text.Component
+import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
@@ -26,155 +16,96 @@ import java.util.*
 
 class TribeCommand : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
+        val message = runCommandAndMessage(sender, args)
+        sender.sendMessage(message)
+        return true
+    }
+
+    private fun runCommandAndMessage(sender: CommandSender, args: Array<String>): TextComponent {
         var p: Player? = null
         if (sender is Player) {
             p = sender
         }
 
-        try {
-            require(args.size != 0) { "Not enough args!\nUsage: /tribe [create | join | switch | leave | stats | pause]" }
-            val oper = args[0]
-            when (oper) {
-                "stats" -> {
-                    var totalCoins = 0
-                    val lines = 100 // hvor mange |
-                    val tribeBalance = mutableMapOf<Tribe, Int>() // brukt for å beregne hvor mange kr hver tribe har i kromerDisctribution
-                    for (tribe in getTribes()) {
-                        tribeBalance[tribe] = tribe.getCoinBalance()
-                        totalCoins += tribe.getCoinBalance()
+        when (val oper = args[0]) {
+            "stats" -> {
+                var totalCoins = 0
+                val lines = 100 // hvor mange |
+                val tribeBalance = mutableMapOf<Tribe, Int>() // brukt for å beregne hvor mange kr hver tribe har i kromerDisctribution
+                for (tribe in Tribes.getTribes()) {
+                    tribeBalance[tribe] = tribe.coinBalance
+                    totalCoins += tribe.coinBalance
+                }
+                return Component.text("Kromer distribution: ").apply {
+                    tribeBalance.forEach { (tribe, balance) ->
+                        append(Component.text("|".repeat(balance * lines / totalCoins), tribe.color))
                     }
-                    var kromerDistribution: Component = Component.text("Kromer distribution: ")
-                    for ((key, value) in tribeBalance) {
-                        kromerDistribution = kromerDistribution.append(
-                            Component.text(
-                                "|".repeat(value * lines / totalCoins),
-                                NamedTextColor.NAMES.value(key.COLOR.name.lowercase(Locale.getDefault()))
-                            )
-                        )
-                    }
-                    sender.sendMessage(kromerDistribution) // bar som viser fordelinga av kromers, fargelagt
-                    sender.sendMessage(
-                        Component.text("Kromer pool: ")
-                            .append(Component.text("$kromerPool kr", NamedTextColor.GREEN))
-                    ) // kromer pool
-                    for (tribe in getTribes()) {
-                        val balance = tribe.getMembers().stream().mapToInt { obj: Member? -> obj!!.getKromers() }.sum()
-                        sender.sendMessage(tribe.COLOR.toString() + tribe.displayName() + " tribe: " + ChatColor.GREEN + balance + "kr ")
-                        for (member in tribe.getMembers()) {
-                            val playerID = member.ID
-                            var playerStats = Component.text(
-                                String.format(
-                                    "%-12s",
-                                    member.NAME
-                                )
-                            ) // adder mellomrom så han blir 12 bokstaver lang
-                            playerStats = playerStats.append(Component.text(", Balance: "))
-                                .append(Component.text(member.getKromers().toString() + " kr", NamedTextColor.GREEN))
 
-                            sender.sendMessage(playerStats)
-                        }
+                    append(Component.text("Kromer pool: "))
+                    append(Component.text("${Tribes.kromerPool} kr", NamedTextColor.GREEN))
+                    appendNewline()
+
+                    Tribes.getTribes().forEach {
+                        val balance = it.coinBalance
+                        append(it.displayName)
+                        append(Component.text(" (${it.playerId}): "))
+                        append(Component.text("$balance kr", NamedTextColor.GREEN))
+                        appendNewline()
                     }
                 }
-
-                "add", "create" -> { // /create <tribeID> <color> <displayName>
-                    require(args.size >= 3) { "Not enough args!" }
-                    val tribeID: String? = args[1]
-                    require(!tribeExists(tribeID)) { "Tribe already exists!" }
-                    val color = args[2].uppercase(Locale.getDefault())
-                    if (args.size > 3) {
-                        val displayName = StringBuilder()
-                        for (i in 3..<args.size) {
-                            if (i > 3) {
-                                displayName.append(" ")
-                            }
-                            displayName.append(args[i])
-                        }
-                        addTribe(Tribe(tribeID, ChatColor.valueOf(color), displayName.toString()))
-                        Bukkit.broadcast(Component.text("New tribe created: " + displayName, NamedTextColor.GREEN))
-                    } else {
-                        addTribe(Tribe(tribeID, ChatColor.valueOf(color), tribeID))
-                        Bukkit.broadcast(Component.text("New tribe created: " + tribeID, NamedTextColor.GREEN))
-                    }
-                }
-
-                "join" -> { // /join <tribeID> <playerName>
-                    require(args.size >= 3) { "Not enough args!" }
-                    val tribeID: String? = args[1]
-                    val playerName = args[2]
-                    val joiningPlayer = Bukkit.getPlayer(playerName)
-                    requireNotNull(joiningPlayer) { "No online player called \"" + playerName + "\" was found" }
-                    val tribe = getTribe(tribeID)
-                    tribe.addMember(joiningPlayer)
-                    val q = Bukkit.getPlayerExact(playerName)
-                    if (q != null) {
-                        q.displayName(Component.text(q.getName(), NamedTextColor.NAMES.value(tribe.COLOR.toString())))
-                    }
-                }
-
-                "kick", "leave" -> {
-                    checkNotNull(p)
-                    checkAdmin(p)
-                    require(args.size >= 3) { "Not enough args!" }
-                    val tribeID: String? = args[1]
-                    val playerName = args[2]
-                    val playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId()
-                    getTribe(tribeID).removeMember(playerID)
-                }
-
-                "switch" -> {
-                    checkNotNull(p)
-                    require(args.size >= 3) { "Not enough args!" }
-                    val tribeID: String? = args[1]
-                    val playerName = args[2]
-                    val playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId()
-                    val member = getMember(playerID)
-                    requireNotNull(member) { "That player wasnt in a tribe to begin with!" }
-                    val tribe = getTribe(tribeID)
-                    tribe.migrateMemberToThisTribe(member)
-                    val q = Bukkit.getPlayerExact(playerName)
-                    if (q != null) {
-                        q.displayName(Component.text(q.getName(), NamedTextColor.NAMES.value(tribe.COLOR.toString())))
-                    }
-                }
-
-                "pause" -> {
-                    require(!isPaused) { "The game is already paused! Use /tribe unpause to unpause" }
-                    pause()
-                }
-
-                "unpause" -> {
-                    if (isPaused) {
-                        unPause()
-                    } else {
-                        throw IllegalArgumentException("The game is already unpaused! Use /tribe pause to pause")
-                    }
-                }
-
-                "toggle_friendly_fire" -> {
-                    Tribes.friendlyFire = !Tribes.friendlyFire
-                    checkNotNull(p)
-                    var message = "[" + p.getName() + "]: Pvp between tribe members set to: "
-                    message += if (Tribes.friendlyFire) ChatColor.GREEN.toString() + "ENABLED" else ChatColor.RED.toString() + "DISABLED"
-                    messagePlayers(message)
-                }
-
-                "test" -> {
-                    checkNotNull(p)
-                    val entity = p.getSpectatorTarget()
-                    val name = if (entity == null) "noone" else entity.getName()
-                    p.sendMessage("Currently spectating: " + name)
-                }
-
-                "version" -> sender.sendMessage("Plugin was last updated " + Main.VERSION)
-                else -> throw IllegalArgumentException(NamedTextColor.RED.toString() + "\"" + oper + "\" is not a valid operation!")
             }
-        } catch (e: IllegalArgumentException) {
-            sender.sendMessage(Component.text(e.message!!, NamedTextColor.RED))
+
+            "create", "init" -> { // create <tribeID> <color> <displayName>
+                if (args.size == 2) return Component.text("you need to specify an id for your tribe\n", NamedTextColor.RED)
+                    .append(Component.text("Usage: ", NamedTextColor.WHITE))
+                    .append(Component.text("/tribe create <tribe-id>", NamedTextColor.GREEN))
+
+                val tribeId = args[1]
+                if (p == null) return Component.text("tribes must be created ingame", NamedTextColor.YELLOW)
+
+                val alreadyExistingTribe = Tribes.getTribe(p)
+                if (alreadyExistingTribe != null) return Component.text("You already registered your tribe!\n", NamedTextColor.YELLOW)
+                    .append(Component.text("(Your tribe is called ", NamedTextColor.WHITE)
+                        .append(alreadyExistingTribe.displayName)
+                        .append(Component.text(")")))
+
+                val color = args.getOrNull(2)?.lowercase()?.let {
+                    NamedTextColor.NAMES.value(it)
+                } ?: NamedTextColor.WHITE
+                if (args.size > 3) {
+                    val displayName = args.drop(3).joinToString(" ")
+                    Tribes.addTribe(p, Tribe(tribeId, color, displayName))
+                    Bukkit.broadcast(Component.text("New tribe created: $displayName", NamedTextColor.GREEN))
+                } else {
+                    Tribes.addTribe(p, Tribe(tribeId, color, tribeId))
+                    Bukkit.broadcast(Component.text("New tribe created: $tribeId", NamedTextColor.GREEN))
+                }
+                p.displayName(Component.text(p.name, color))
+                return Component.empty()
+            }
+
+            "toggle_friendly_fire" -> {
+                Tribes.friendlyFire = !Tribes.friendlyFire
+                checkNotNull(p)
+                var message = "[${p.name}]: Pvp between tribe member set to: "
+                message += if (Tribes.friendlyFire) ChatColor.GREEN.toString() + "ENABLED" else ChatColor.RED.toString() + "DISABLED"
+                Tribes.messagePlayers(message)
+                return Component.empty()
+            }
+
+            "test" -> {
+                checkNotNull(p)
+                val entity = p.spectatorTarget
+                val name = entity?.name ?: "noone"
+                return Component.text("Currently spectating: $name")
+            }
+
+            "version" -> return Component.text("Plugin was last updated " + Main.VERSION)
+            else -> return Component.text("'$oper' is not a valid operation!", NamedTextColor.RED)
         }
-        return true
     }
 
     private fun checkAdmin(p: Player) {
-        require(p.isOp()) { NamedTextColor.RED.toString() + "You dont have permission to run this command. If you have any queestions, please contact Colin or Gruve" }
+        require(p.isOp) { NamedTextColor.RED.toString() + "You dont have permission to run this command. If you have any queestions, please contact Colin or Gruve" }
     }
 }

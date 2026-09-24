@@ -33,21 +33,9 @@ object Tribes {
     }
 
     @JvmStatic
-    fun schedulePostInit(`object`: PostInit?) {
-        postInitObjects.add(`object`!!)
-    }
-
-    @JvmStatic
-    fun postInit() {
-        for (`object` in postInitObjects) {
-            `object`.postInit()
-        }
-        pause()
-    }
-
-    @JvmStatic
-    fun addTribe(tribe: Tribe) {
-        tribes.put(tribe.ID, tribe)
+    fun addTribe(p: Player, tribe: Tribe) {
+        tribes[tribe.playerId.toString()] = tribe
+        playerTribes[p] = tribe
     }
 
     @JvmStatic
@@ -60,6 +48,14 @@ object Tribes {
         val tribe: Tribe = tribes.get(tribeID)!!
         requireNotNull(tribe) { "The tribe \"" + tribeID + "\" doesnt exist!" }
         return tribe
+    }
+
+    fun getTribe(p: Player): Tribe? {
+        return playerTribes[p]
+    }
+
+    fun getTribe(p: Player): Tribe? {
+        return playerTribes[p]
     }
 
     @JvmStatic

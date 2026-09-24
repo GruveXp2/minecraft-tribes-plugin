@@ -9,7 +9,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -37,7 +36,7 @@ public class ItemManager { // recipes og items
         ItemMeta goldMeta = GOLD_COIN.getItemMeta();
         goldMeta.displayName(Component.text("Gold Coin").color(NamedTextColor.GOLD));
         String playerName = Tribes.getMember(playerID).NAME;
-        goldMeta.lore(List.of(Component.text("64 Kromer"), Component.text(playerName).color(Tribes.toTextColor(Tribes.getMember(playerID).tribe().COLOR))));
+        goldMeta.lore(List.of(Component.text("64 Kromer"), Component.text(playerName).color(Tribes.toTextColor(Tribes.getMember(playerID).tribe().color))));
         goldMeta.setCustomModelData(77002);
         GOLD_COIN.setAmount(5);
         return GOLD_COIN;
@@ -106,7 +105,7 @@ public class ItemManager { // recipes og items
         if (playerCoins.containsKey(playerID)) {return;} // hvis playeren allerede he registrert coin items
         Member member = Tribes.getMember(playerID);
 
-        Component ownerLore = Component.text(member.NAME).color(Tribes.toTextColor(member.tribe().COLOR));
+        Component ownerLore = Component.text(member.NAME).color(Tribes.toTextColor(member.tribe().color));
 
         ItemStack COPPER_COIN = new ItemStack(Material.FIREWORK_STAR);
         ItemStack IRON_COIN = new ItemStack(Material.FIREWORK_STAR);
