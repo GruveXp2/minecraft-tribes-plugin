@@ -54,13 +54,6 @@ public class TribeCommand implements CommandExecutor {
                         for (Member member : tribe.getMembers()) {
                             UUID playerID = member.ID;
                             TextComponent playerStats = Component.text(String.format("%-12s", member.NAME)); // adder mellomrom så han blir 12 bokstaver lang
-                            playerStats = playerStats.append(Component.text(" - ")
-                                    .append(tribe.isAlive(playerID) ? Component.text("ALIVE", NamedTextColor.GREEN) : Component.text("DEAD", NamedTextColor.RED)));
-                            if (!tribe.isAlive(playerID)) {
-                                playerStats = playerStats.append(Component.text(", Respawntime: ", NamedTextColor.WHITE))
-                                        .append(Component.text(member.getRespawnCooldown()))
-                                        .append(Component.text("min"));
-                            }
                             playerStats = playerStats.append(Component.text(", Deaths: ", NamedTextColor.WHITE))
                                     .append(Component.text(tribe.getDeaths(playerID)));
                             playerStats = playerStats.append(Component.text(", Balance: "))

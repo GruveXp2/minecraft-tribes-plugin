@@ -2,9 +2,7 @@ package gruvexp.tribes
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import gruvexp.tribes.tasks.CooldownReduction
 import gruvexp.tribes.tasks.PauseIn1Min
-import gruvexp.tribes.tasks.RespawnCooldown
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.*
@@ -18,7 +16,7 @@ import java.util.*
 
 object Tribes {
     // A godclass that probably breaks every SOLID rule
-    @kotlin.jvm.JvmField
+    @JvmField
     var friendlyFire: Boolean = false
     private val members = HashMap<UUID, Member?>() // liste over alle members uavhengig av tribe
     private val playerPauseCoords = HashMap<UUID?, Location?>()
@@ -118,17 +116,6 @@ object Tribes {
             `object`.postInit()
         }
         pause()
-        considerCooldownReduction()
-        for (tribe in tribes.values) {
-            for (playerID in tribe.getMemberIDs()) {
-                if (!tribe.getMember(playerID).isAlive()) {
-                    playerSpectatingStatus.put(
-                        playerID,
-                        false
-                    ) // alle som er daue og joiner serveren spawner på dødsstedet
-                }
-            }
-        }
     }
 
     @JvmStatic
@@ -246,35 +233,6 @@ object Tribes {
             pauseCooldown = PauseIn1Min()
             pauseCooldown!!.runTaskTimer(Main.getPlugin(), 0, 20)
         }
-    }
-
-    @JvmStatic
-    fun considerCooldownReduction() { // hvis alle er daue så reduserers cooldownen til den første spawner
-        //debugMessage("considering cooldown reduction");
-        for (tribe in tribes.values) {
-            if (tribe.isAlive()) {
-                return  // skal kun redusere cooldown hvis absolutt alle aktive spillere er daue
-            }
-        }
-        //start cooldownreduksjon
-        //debugMessage("starting cooldown reduction");
-        isReducingCooldowns = true
-        val respawnCooldowns = HashSet<RespawnCooldown?>()
-        for (tribe in tribes.values) {
-            for (memberID in tribe.getMemberIDs()) {
-                val respawnCooldown = tribe.getMember(memberID).getRespawnCooldownTask()
-                if (respawnCooldown != null) {
-                    respawnCooldowns.add(respawnCooldown) // adder respawnCooldowns til en liste, og alle i listen vil få cooldownen redusert
-                }
-            }
-        }
-        Bukkit.broadcast(Component.text("No players alive, cooldown timers will be reduced", NamedTextColor.GREEN))
-        CooldownReduction(respawnCooldowns).runTaskTimer(Main.getPlugin(), 0, 1)
-    }
-
-    @JvmStatic
-    fun stopCooldownReduction() {
-        isReducingCooldowns = false
     }
 
     @JvmStatic

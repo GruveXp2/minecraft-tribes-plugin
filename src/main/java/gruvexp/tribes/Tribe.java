@@ -96,9 +96,6 @@ public class Tribe {
             this.members.put(member.ID, member);
             member.registerTribe(this);
         });
-        activeMembers = members.stream()
-                .filter(member -> !member.isAlive())
-                .collect(Collectors.toSet());
         //Manager.debugMessage("JSON setter: " + ID + " has " + activeMembers.size() + " active members");
     }
 
@@ -107,7 +104,6 @@ public class Tribe {
             throw new IllegalArgumentException(ChatColor.YELLOW + "Nothing happened, that player wasnt in a tribe in the first place");
         }
         Tribes.unRegisterMember(playerID); // fjerner at member er registrert hos manageren
-        members.get(playerID).remove();
         members.remove(playerID);
         Bukkit.broadcastMessage(String.format("%s%s %sleft tribe %s%s", ChatColor.YELLOW, Bukkit.getOfflinePlayer(playerID).getName(), ChatColor.WHITE, COLOR, ID));
         Tribes.handleMemberLeave(playerID);
@@ -127,13 +123,6 @@ public class Tribe {
         return members.get(playerID).getDeaths();
     }
 
-    public boolean isAlive(UUID playerID) {
-        if (!members.containsKey(playerID)){
-            throw new IllegalArgumentException(ChatColor.RED + Bukkit.getOfflinePlayer(playerID).getName() + " is not a member of this tribe (" + ID + ")!");
-        }
-        return members.get(playerID).isAlive();
-    }
-
     public void death(UUID playerID) {
         for (Map.Entry<UUID, Member> memberEntry : members.entrySet()) {
             UUID playerID2 = memberEntry.getKey();
@@ -146,7 +135,6 @@ public class Tribe {
             break;
         }
         members.get(playerID).die();
-        Tribes.considerCooldownReduction();
         Tribes.handleDeath(playerID); // setter isSpectating til false
     }
 
@@ -160,28 +148,12 @@ public class Tribe {
 
     public void handleLeaveActive(UUID playerID) { // when someone active goes offline or their respawn timer runs out
         Member member = getMember(playerID);
-        if (member.isAlive()) {
-            activeMembers.remove(member);
-            Tribes.considerPauseToggle();
-            Tribes.considerCooldownReduction();
-        }
+        activeMembers.remove(member);
+        Tribes.considerPauseToggle();
     }
 
     @JsonIgnore
     public boolean isActive() {
         return !activeMembers.isEmpty();
-    }
-
-    @JsonIgnore
-    public boolean isAlive() { // hvis alle spillerene som er online eller har cooldown er daue,
-        if (activeMembers.isEmpty()) {
-            return true;
-        }
-        for (Member member : activeMembers) {
-            if (member.isAlive()) {
-                return true;
-            }
-        }
-        return false;
     }
 }

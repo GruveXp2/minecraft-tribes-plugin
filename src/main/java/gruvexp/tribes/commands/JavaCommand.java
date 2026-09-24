@@ -83,24 +83,6 @@ public class JavaCommand implements CommandExecutor {
                             Tribes.getMember(playerID).setDeaths(deaths); // setter deaths
                             Bukkit.broadcastMessage(String.format("%s%s hacked: set deaths of %s to %s", ChatColor.RED, p.getName(), playerName, deaths));
                         }
-                        case "set_respawn_time" -> {
-                            if (args.length == 2) {
-                                throw new IllegalArgumentException("Error: missing argument <playerName> (/java hack set_respawn_time)");
-                            }
-                            String playerName = args[2];
-                            UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
-                            if (args.length == 3) {
-                                throw new IllegalArgumentException("Error: missing argument <deaths> (/java hack set_respawn_time)");
-                            }
-                            int respawnTime;
-                            try {
-                                respawnTime = Integer.parseInt(args[3]);
-                            } catch (NumberFormatException e) {
-                                throw new IllegalArgumentException("Error: argument <respawn_time> must be a number (/java hack set_respawn_time)");
-                            }
-                            Tribes.getMember(playerID).haccRespawnCooldown(respawnTime); // setter respawncooldown i minutter
-                            Bukkit.broadcastMessage(String.format("%s%s hacked: set respawncooldown of %s to %s", ChatColor.RED, p.getName(), playerName, respawnTime));
-                        }
                         case "starter_coins", "coins", "get_coins" -> {
                             if (args.length == 2) {
                                 throw new IllegalArgumentException("Error: missing argument <player> (/java hack starter_coins)");
