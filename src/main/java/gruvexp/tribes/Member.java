@@ -15,14 +15,12 @@ public class Member implements PostInit{
     @JsonProperty("id")
     public final UUID ID;
     private Tribe TRIBE;
-    private int deaths;
     private int kromers;
 
     public Member(String playerName, Tribe tribe) {
         NAME = playerName;
         ID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
         TRIBE = tribe;
-        deaths = 0;
         kromers = 0;
         Tribes.registerMember(this);
         ItemManager.registerCoinItems(ID);
@@ -33,7 +31,6 @@ public class Member implements PostInit{
     public Member(@JsonProperty("id") String playerID, @JsonProperty("name") String playerName, @JsonProperty("deaths") int deaths, @JsonProperty("kromers") int kromers) {
         NAME = playerName;
         ID = UUID.fromString(playerID);
-        this.deaths = deaths;
         this.kromers = kromers;
         Tribes.registerMember(this);
     }
@@ -56,17 +53,7 @@ public class Member implements PostInit{
         return TRIBE;
     }
 
-    public int getDeaths() {
-        return deaths;
-    }
-
-    public void setDeaths(int deaths) { // ONLY FOR HACKING
-        this.deaths = deaths;
-    }
-
     public void die() {
-        deaths++;
-
         Player p = Bukkit.getPlayer(ID);
         Location deathLocation = p.getLocation();
         if (deathLocation.getWorld() == Bukkit.getWorld("Tribes_the_end") && deathLocation.getY() < 0) {

@@ -65,24 +65,6 @@ public class JavaCommand implements CommandExecutor {
                     }
                     String hack = args[1];
                     switch (hack) {
-                        case "set_deaths" -> {
-                            if (args.length == 2) {
-                                throw new IllegalArgumentException("Error: missing argument <playerName> (/java hack set_deaths)");
-                            }
-                            String playerName = args[2];
-                            if (args.length == 3) {
-                                throw new IllegalArgumentException("Error: missing argument <deaths> (/java hack set_deaths <player name>)");
-                            }
-                            int deaths;
-                            try {
-                                deaths = Integer.parseInt(args[3]);
-                            } catch (NumberFormatException e) {
-                                throw new IllegalArgumentException("Error: argument <deaths> must be a number (/java hack set_deaths)");
-                            }
-                            UUID playerID = Bukkit.getOfflinePlayer(playerName).getUniqueId();
-                            Tribes.getMember(playerID).setDeaths(deaths); // setter deaths
-                            Bukkit.broadcastMessage(String.format("%s%s hacked: set deaths of %s to %s", ChatColor.RED, p.getName(), playerName, deaths));
-                        }
                         case "starter_coins", "coins", "get_coins" -> {
                             if (args.length == 2) {
                                 throw new IllegalArgumentException("Error: missing argument <player> (/java hack starter_coins)");

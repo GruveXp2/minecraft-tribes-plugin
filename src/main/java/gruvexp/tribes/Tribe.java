@@ -116,13 +116,6 @@ public class Tribe {
         members.remove(playerID);
     }
 
-    public int getDeaths(UUID playerID) {
-        if (!members.containsKey(playerID)){
-            throw new IllegalArgumentException(ChatColor.RED + Bukkit.getOfflinePlayer(playerID).getName() + " is not a member of this tribe (" + ID + ")!");
-        }
-        return members.get(playerID).getDeaths();
-    }
-
     public void death(UUID playerID) {
         for (Map.Entry<UUID, Member> memberEntry : members.entrySet()) {
             UUID playerID2 = memberEntry.getKey();
