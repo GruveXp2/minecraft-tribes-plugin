@@ -82,11 +82,11 @@ public class Tribe {
 
     @SuppressWarnings("unused")
     @JsonProperty("members") @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Map<UUID, Member> getMembersJSON() {
+    private Collection<Member> getMembersJSON() {
         if (members.isEmpty()) {
             return null;
         }
-        return members;
+        return members.values();
     }
 
     @SuppressWarnings("unused")

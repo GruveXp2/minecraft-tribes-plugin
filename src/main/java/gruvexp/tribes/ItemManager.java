@@ -22,7 +22,7 @@ public class ItemManager { // recipes og items
     public static final HashMap<UUID, HashMap<String, ItemStack>> playerCoins = new HashMap<>();
     public static ItemStack REVIVAL_ALTAR;
     public static ItemStack ACTIVATED_REVIVAL_ALTAR;
-    private static final HashSet<String> playersThatHasRegisteredRecipes = new HashSet<>();
+    private static final HashSet<UUID> playersThatHasRegisteredRecipes = new HashSet<>();
 
     public static void registerCoinItems() { // registrerer coins for alle registrerte members
         Collection<Tribe> tribes = Manager.getTribes();
@@ -38,7 +38,7 @@ public class ItemManager { // recipes og items
         registerAltarRecipe();
     }
     
-    public static ItemStack getStarterItems(UUID playerID) {
+    public static ItemStack getStarterItems(UUID playerID) { // gir 4 gold kromer til en player
         ItemStack GOLD_COIN = new ItemStack(Material.FIREWORK_STAR);
 
         ItemMeta goldMeta = GOLD_COIN.getItemMeta();
@@ -46,7 +46,6 @@ public class ItemManager { // recipes og items
         String playerName = Manager.getMember(playerID).NAME;
         goldMeta.lore(List.of(Component.text("64 Kromer"), Component.text(playerName).color(Manager.toTextColor(Manager.getMember(playerID).tribe().COLOR))));
         goldMeta.setCustomModelData(77002);
-        GOLD_COIN.setItemMeta(goldMeta);
         GOLD_COIN.setAmount(5);
         return GOLD_COIN;
     }
@@ -54,11 +53,11 @@ public class ItemManager { // recipes og items
     public static int toKromer(ItemStack item) {
         int modelID = item.getItemMeta().getCustomModelData();
         return switch (modelID) {
-            case 77000 -> 1;
-            case 77001 -> 8;
-            case 77002 -> 64;
-            case 77003 -> 512;
-            case 77004 -> 4096;
+            case 77000 -> 1; // copper
+            case 77001 -> 8; // jern
+            case 77002 -> 64; // gull
+            case 77003 -> 512; // dia
+            case 77004 -> 4096; // netherite
             default -> 0;
         } * item.getAmount();
     }
@@ -158,6 +157,13 @@ public class ItemManager { // recipes og items
         coins.put("gold", GOLD_COIN);
         coins.put("diamond", DIAMOND_COIN);
         coins.put("netherite", NETHERITE_COIN);
+
+        for (ItemStack coin : coins.values()) {
+            ItemMeta meta = coin.getItemMeta();
+            meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, playerID.toString());
+            coin.setItemMeta(meta);
+        }
+
         playerCoins.put(playerID, coins);
     }
 
@@ -231,7 +237,7 @@ public class ItemManager { // recipes og items
         netheriteToDiamond.addIngredient(1, coins.get("netherite"));
         Bukkit.addRecipe(netheriteToDiamond);
         //p.discoverRecipe(netheriteToDiamond.getKey());
-        playersThatHasRegisteredRecipes.add(playerName);
+        playersThatHasRegisteredRecipes.add(playerID);
     }
 
     private static void registerAltarRecipe() { // recipes without coins
@@ -240,8 +246,11 @@ public class ItemManager { // recipes og items
 
         ShapedRecipe revivalAltar = new ShapedRecipe(altarrecipe, REVIVAL_ALTAR);
 
-        revivalAltar.shape(" T ", "WCW", "SBS");
-
+        revivalAltar.shape(
+                " T ",
+                "WCW",
+                "SBS"
+        );
         revivalAltar.setIngredient('T', Material.TOTEM_OF_UNDYING);
         revivalAltar.setIngredient('W', Material.LIGHT_BLUE_CARPET);
         revivalAltar.setIngredient('C', Material.RECOVERY_COMPASS);

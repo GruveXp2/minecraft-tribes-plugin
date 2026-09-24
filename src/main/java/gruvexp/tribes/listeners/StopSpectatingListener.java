@@ -12,7 +12,7 @@ public class StopSpectatingListener implements Listener {
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.SPECTATE) {
             Player player = event.getPlayer();
             Entity spectatedEntity = player.getSpectatorTarget();
-            if (spectatedEntity != null) {
+            if (spectatedEntity != null) { // ikke ferdig
                 // The player is currently spectating your entity
             } else {
                 // The player stopped spectating your entity

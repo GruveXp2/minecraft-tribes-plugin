@@ -49,7 +49,8 @@ public class TribeCommand implements CommandExecutor {
                     sender.sendMessage(kromerDistribution); // bar som viser fordelinga av kromers, fargelagt
                     sender.sendMessage(Component.text("Kromer pool: ").append(Component.text(Manager.getKromerPool() + " kr", NamedTextColor.GREEN))); // kromer pool
                     for (Tribe tribe : Manager.getTribes()) {
-                        sender.sendMessage(tribe.COLOR + tribe.displayName() + " tribe:");
+                        int balance = tribe.getMembers().stream().mapToInt(Member::getKromers).sum();
+                        sender.sendMessage(tribe.COLOR + tribe.displayName() + " tribe: " + ChatColor.GREEN + balance + "kr ");
                         for (Member member : tribe.getMembers()) {
                             UUID playerID = member.ID;
                             TextComponent playerStats = Component.text(String.format("%-12s", member.NAME)); // adder mellomrom så han blir 12 bokstaver lang

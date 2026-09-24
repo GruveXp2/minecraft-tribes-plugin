@@ -18,7 +18,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
-public final class Manager {
+public final class Manager { // A godclass that probably breaks every SOLID rule
 
     public static boolean friendlyFire = false;
     private static final HashMap<UUID, Member> members = new HashMap<>(); // liste over alle members uavhengig av tribe
@@ -284,9 +284,8 @@ public final class Manager {
         return reducingCooldowns;
     }
 
-    public static void handlePlayerJoin(Player p) { // når en spiller leaver serveren
+    public static void handlePlayerJoin(Player p) {
         pauseBar.addPlayer(p);
-        considerPauseToggle();
         if (paused) {
             setPauseLocation(p.getUniqueId(), p.getLocation());
         }

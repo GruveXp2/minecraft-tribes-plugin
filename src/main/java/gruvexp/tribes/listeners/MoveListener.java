@@ -51,6 +51,6 @@ public class MoveListener implements Listener {
         }
         Location pLoc = p.getLocation();
         if (deathLoc.getX() == pLoc.getX() && deathLoc.getZ() == pLoc.getZ() && deathLoc.getY() == pLoc.getY()) {return;}
-        p.teleport(deathLoc); // telporterer spilleren tilbake til der høn daua hvis høn har bevegd seg
+        p.teleport(deathLoc); // telporterer spilleren tilbake til der de daua hvis de har bevegd seg
     }
 }

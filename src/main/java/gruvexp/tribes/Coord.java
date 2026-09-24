@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 
-public class Coord {
+public class Coord { // ikke brukt men skal kanskje bruke etterhvert
 
     protected double x;
     protected double y;

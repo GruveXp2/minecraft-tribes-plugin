@@ -2,7 +2,6 @@ package gruvexp.tribes.listeners;
 
 import gruvexp.tribes.*;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.block.ShulkerBox;
@@ -50,8 +49,12 @@ public class ItemListener implements Listener {
         ItemStack itemStack = item.getItemStack();
         Player p = (Player) e.getEntity();
         Member pickupingMember = Manager.getMember(p.getUniqueId());
-        considerOwnerChange(itemStack, pickupingMember);
-        item.setItemStack(itemStack);
+        if (pickupingMember == null) {
+            Bukkit.broadcast(Component.text("Error! Player " + p.getName() + " tried to pick up a coin/head but arent registered in the tribe plugin. pls contact gruve"));
+            return;
+        }
+        boolean changedOwner = considerOwnerChange(itemStack, pickupingMember);
+        if (changedOwner) item.setItemStack(itemStack);
     }
 
     @EventHandler
@@ -130,25 +133,32 @@ public class ItemListener implements Listener {
         }
     }
 
-    private void considerOwnerChange(ItemStack itemStack, Member pickupingMember) { // member er den som plukka itemet opp
-        if (itemStack.getType() != Material.FIREWORK_STAR && itemStack.getType() != Material.PLAYER_HEAD) {return;} // hvis det ikke er en firework_star som brukes til coins eller player heads, returner
+    private boolean considerOwnerChange(ItemStack itemStack, Member pickupingMember) { // member er den som plukka itemet opp
+        if (itemStack.getType() != Material.FIREWORK_STAR && itemStack.getType() != Material.PLAYER_HEAD) {return false;} // hvis det ikke er en firework_star som brukes til coins eller player heads, returner
         ItemMeta meta = itemStack.getItemMeta();
 
         if (itemStack.getType() == Material.FIREWORK_STAR && meta.hasCustomModelData() && meta.getCustomModelData() >= 77000 && meta.getCustomModelData() < 77005) { // skjekker om itemet er en coin (customodeldata er mellom 77000 og 77004)
             List<Component> lore = meta.lore();
             if (lore != null) {
-                String prevPlayerName = PlainTextComponentSerializer.plainText().serialize(lore.get(lore.size() - 1)); // andre linje i loren er eieren av coinsene
-                Member prevOwner = Manager.getMember(Bukkit.getOfflinePlayer(prevPlayerName).getUniqueId());
+                String prevPlayerIDstr = meta.getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
+                UUID prevPlayerID = getUUIDFromCoinItem(prevPlayerIDstr, lore);
+                Member prevOwner = Manager.getMember(prevPlayerID);
+                if (prevOwner == null) {
+                    Bukkit.broadcast(Component.text("Error: failed to change coin owners (pls contact gruve)"));
+                    return false;
+                }
                 int kromers = ItemManager.toKromer(itemStack);
                 lore.set(lore.size() - 1, Component.text(pickupingMember.NAME).color(Manager.toTextColor(pickupingMember.tribe().COLOR)));
+                meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingMember.ID.toString());
                 meta.lore(lore);
                 pickupingMember.addKromers(kromers); // adder kromers til playeren som plukka de opp
                 prevOwner.addKromers(-kromers); // fjerner kromers til playeren som eide det fra før av
             }
         } else { // player head
-            meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingMember.NAME);
+            meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingMember.ID.toString());
         }
         itemStack.setItemMeta(meta);
+        return true;
     }
 
     private void handleItemDestruction(EntityEvent e, Item item) {
@@ -162,8 +172,11 @@ public class ItemListener implements Listener {
             if (lore != null) {
                 Cancellable cancellable = (Cancellable) e;
                 cancellable.setCancelled(true); // konverterer eventen til en cancellable sånn at men kan kanselere den
-                String playerName = PlainTextComponentSerializer.plainText().serialize(lore.get(lore.size() - 1)); // andre linje i loren er eieren av coinsene
-                Player p = Bukkit.getPlayer(playerName);
+                //String playerName = PlainTextComponentSerializer.plainText().serialize(lore.get(lore.size() - 1)); // andre linje i loren er eieren av coinsene
+                String playerIDStr = meta.getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
+                if (playerIDStr == null) return;
+                UUID playerID = getUUIDFromCoinItem(playerIDStr, lore);
+                Player p = Bukkit.getPlayer(playerID);
 
                 if (p != null && p.isOnline()) { // hvis playeren er online så telporteres itemet til playeren, hvis ikke så bare blir itemet liggans
                     item.teleport(p);
@@ -173,9 +186,10 @@ public class ItemListener implements Listener {
         } else if (type == Material.PLAYER_HEAD) { // player head
             Cancellable cancellable = (Cancellable) e;
             cancellable.setCancelled(true); // player heads kanke ødlegges uansett hva
-            String owner = meta.getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
-            if (owner == null) return;
-            Player p = Bukkit.getPlayer(owner);
+            String ownerIDStr = meta.getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
+            if (ownerIDStr == null) return;
+            UUID ownerID = UUID.fromString(ownerIDStr);
+            Player p = Bukkit.getPlayer(ownerID);
             if (p != null && p.isOnline()) { // hvis playeren er online så telporteres itemet til playeren, hvis ikke så bare blir itemet liggans
                 item.teleport(p);
                 item.setPickupDelay(0);
@@ -198,5 +212,24 @@ public class ItemListener implements Listener {
                 contentItem.setTicksLived(11800 - i); // 12min - 10s
             }
         }
+    }
+
+    public static UUID getUUIDFromCoinItem(String input, List<Component> lore) {
+        UUID prevPlayerID;
+        if (input == null) { // Migrating to new system, from name system to uuid system
+            String prevPlayerName = PlainTextComponentSerializer.plainText().serialize(lore.get(lore.size() - 1)); // andre linje i loren er eieren av coinsene
+            if (prevPlayerName.equals("Syntak")) {
+                prevPlayerName = "_Syntak";
+            } else if (prevPlayerName.equals("bossfight")) {
+                prevPlayerName = "bossfight3";
+            } else if (prevPlayerName.equals("yaringd")) {
+                prevPlayerName = "legendaryyyyy";
+            }
+            OfflinePlayer prevPlayer = Bukkit.getOfflinePlayer(prevPlayerName);
+            prevPlayerID = prevPlayer.getUniqueId();
+        } else { // this method will be the standard method
+            prevPlayerID = UUID.fromString(input);
+        }
+        return prevPlayerID;
     }
 }

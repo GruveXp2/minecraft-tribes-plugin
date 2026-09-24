@@ -2,6 +2,7 @@ package gruvexp.tribes;
 
 import gruvexp.tribes.commands.*;
 import gruvexp.tribes.listeners.*;
+import gruvexp.tribes.secrets.Secrets;
 import gruvexp.tribes.tasks.NetherEndCooldown;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -21,14 +22,15 @@ public final class Main extends JavaPlugin {
     public static World WORLD;
     public static final String testWorldName = "Tribes test server";
     public static final String worldName = "Tribes";
-    private static final int PORT = 25566; // Port used to communicate with the discord bot
+    private static final int PORT = 25566; // port used to communicate with the discord bot
     public static final String VERSION = "2024.08.19";
     public static String dataPath;
     public static Player gruveXp;
 
     /**
      * <strong>Hoi</strong><br>
-     * Welcome to my java plugin
+     * Welcome to my java plugin, this plugin is used for my SPM
+     * <p>It has custom blocks (like altar of revival), a coin currency system, many tribes with multiple players in them, and more</p>
      * */
 
     @Override
@@ -49,22 +51,22 @@ public final class Main extends JavaPlugin {
         getCommand("java").setExecutor(new JavaCommand());
         plugin = this;
         WORLD = Bukkit.getWorld(worldName);
-        dataPath = "C:\\Users\\gruve\\Desktop\\Server\\" + worldName + "\\plugin data\\tribes.json";
+        dataPath = Secrets.SERVER_PATH + worldName + "\\plugin data\\tribes.json";
         if (WORLD == null) {
             WORLD = Bukkit.getWorld(testWorldName);
             getLogger().info("Cant load world \"" + worldName + "\", loading testworld instead");
-            dataPath = "C:\\Users\\gruve\\Desktop\\Server\\" + testWorldName + "\\plugin data\\tribes.json";
+            dataPath = Secrets.SERVER_PATH + testWorldName + "\\plugin data\\tribes.json";
         }
-        Manager.loadData(); // laster inn json data
-        ItemManager.registerCoinItems(); // registrerer coin items for alle members fra json fila
-        Manager.postInit(); // initer objekter som krever at tribes variabelen er inita først
+        Manager.loadData(); // loading json data
+        ItemManager.registerCoinItems(); // register coin items for all members from the json file
+        Manager.postInit(); // init objects that need access to their tribe object
         ItemManager.registerAltar();
         Manager.pause();
         if (WORLD.getTime() < 41*24000) {
             new NetherEndCooldown().runTaskTimer(this, 0L, 24000L);
         }
         getLogger().info("Tribe Plugin v" + VERSION + " successfully loaded");
-        new Thread(this::startSocketServer).start(); // Start the server in a new thread to avoid blocking the main thread
+        new Thread(this::startSocketServer).start(); // start the server in a new thread to avoid blocking the main thread
     }
 
     @Override
@@ -83,52 +85,46 @@ public final class Main extends JavaPlugin {
 
             while (true) {
                 try (Socket clientSocket = serverSocket.accept();
-                     BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-                     BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
+                    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+                    BufferedWriter out = new BufferedWriter(new OutputStreamWriter(clientSocket.getOutputStream()))) {
 
                     String command = in.readLine();
-                    //getLogger().info("Received command: " + command);
                     if (command == null || command.trim().isEmpty()) return;
-                    if (command.startsWith("@")) {
-                        if (command.equals("@ping")) {
-                            out.write("Tribes: " + Bukkit.getOnlinePlayers().size() + " online");
+                    if (command.startsWith("@")) { // a request to the plugin to perform something
+                        if (command.equals("@ping")) { // the discord bot pinged the plugin
+                            out.write("Tribes: " + Bukkit.getOnlinePlayers().size() + " online"); // return info about the server (how many players online etc)
                             out.newLine();
                             out.flush();
                         }
                     } else { // a minecraft command
-
                         CountDownLatch latch = new CountDownLatch(1);
-
-                        Bukkit.getScheduler().runTask(this, () -> { // Schedule the command execution on the main thread
+                        Bukkit.getScheduler().runTask(this, () -> { // schedule the command execution on the main thread
                             try {
-                                // Execute the command on the server console
+                                // execute the command on the server console
                                 ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
                                 String result = executeCommand(console, command);
 
-                                synchronized (out) { // Ensure safe access to the BufferedWriter
+                                synchronized (out) {
                                     try {
-                                        // Send the result back to the client
+                                        // send the result back to the dc bot
                                         out.write(result);
                                         out.newLine();
                                         out.flush();
-                                        //getLogger().info("The result of the command is: \n" + result + "\n======");
                                     } catch (IOException e) {
                                         getLogger().severe("Error sending result to client: " + e.getMessage());
                                     }
                                 }
                             } finally {
-                                latch.countDown(); // Signal that the task is complete
+                                latch.countDown(); // signal that the task is complete
                             }
                         });
 
-                        // Wait for the task to complete before closing the resources
                         try {
                             latch.await(1, TimeUnit.SECONDS); // if the server lags so much it takes over a second to run the command, then it will quit waiting
                         } catch (InterruptedException e) {
                             getLogger().severe("Waiting for task completion interrupted: " + e.getMessage());
                         }
                     }
-                    //getLogger().warning("The socket will close now");
                 } catch (IOException e) {
                     getLogger().severe("Error handling client: " + e.getMessage());
                 }
@@ -144,16 +140,17 @@ public final class Main extends JavaPlugin {
         PrintStream originalOut = System.out;
 
         try {
-            // Redirect system output to capture command output
+            // redirect system output to capture command result (so if someone did a syntax error, they will know about it)
             System.setOut(new PrintStream(baos));
 
-            // Execute the command
+            // run the command
             Bukkit.dispatchCommand(console, command);
+            Bukkit.getLogger().info(baos.toString().trim());
 
-            // Restore original system output
+            // restore original system output
             System.setOut(originalOut);
 
-            // Return the captured output
+            // return the output (the output of the command)
             return baos.toString().trim();
         } catch (Exception e) {
             e.printStackTrace();

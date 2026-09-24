@@ -32,7 +32,7 @@ public class JoinListener implements Listener {
             return;
         }
         tribe.handleJoin(p);
-        // Grant 5 seconds of invulnerability
+        // Gi 5 sek med udødlighet
         p.setInvulnerable(true);
         // DEBUG
         if (p.getName().equals("GruveXp")) {
@@ -42,7 +42,7 @@ public class JoinListener implements Listener {
             }*/
         }
 
-        // Schedule a task to remove invulnerability after 5 seconds
+        // Fjern udødlighet etter 5sek
         new BukkitRunnable() {
             @Override
             public void run() {

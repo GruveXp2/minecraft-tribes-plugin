@@ -6,11 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import gruvexp.tribes.tasks.AltarCooldown;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Hopper;
@@ -23,6 +19,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.jetbrains.annotations.NotNull;
@@ -204,9 +201,13 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         if (item == null || item.getType() != Material.FIREWORK_STAR || !item.getItemMeta().hasCustomModelData()) return;
         int itemKromerAmount = ItemManager.toKromer(item);
         if (itemKromerAmount == 0) return;
+        String coinOwnerIDStr = item.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
+        if (coinOwnerIDStr == null) {
+            Bukkit.broadcast(Component.text("Error: old coins from old system detected, please update the coins to the new version by dropping them on the ground and picking them up, or contact Gruve"));
+            return;
+        }
         item.setAmount(0); // alle coins blir plukka opp (de leveres tilbake igjen seinere om det er no til overs)
-        List<Component> lore = item.lore();
-        UUID coinOwner = Bukkit.getOfflinePlayer(PlainTextComponentSerializer.plainText().serialize(lore.get(lore.size() - 1))).getUniqueId();
+        UUID coinOwner = UUID.fromString(coinOwnerIDStr);
         Manager.getMember(coinOwner).addKromers(-itemKromerAmount); // removes the coin from the user. the coins will be stored inside the altar, but wont go into the pool before the altar is fully activated
         this.coinOwner = coinOwner;
         storedKromer += itemKromerAmount;
@@ -215,7 +216,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
     private void returnExcessCoins(Inventory inventory, int amount) {
         for (ItemStack coin : ItemManager.toItems(amount, coinOwner)) {
             for (int i = 0; i < inventory.getSize(); i++) { // i er slotten i hopper inventoriet
-                if (i == inventory.getSize() - 1) { // hvis det ikker er noe plass i heile inventoriet
+                if (i == inventory.getSize() - 1) { // hvis det ikke er noe plass i heile inventoriet
                     Main.WORLD.dropItemNaturally(LOCATION.clone().add(0, 1, 0), coin); // spawner coinen oppå alteret istedenfor inni
                     break;
                 } else if (inventory.getItem(i) == null) { // hvis det er plass i slotten
@@ -300,12 +301,12 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
                 for (ItemStack item : ItemManager.toItems(storedKromer, playerID)) {
                     Main.WORLD.dropItemNaturally(LOCATION, item);
                 }
-                TRIBE.getMember(playerID).addKromers(storedKromer); // coin ownered blir satt til en random player i triben
+                TRIBE.getMember(playerID).addKromers(storedKromer); // coin owneren blir satt til en random player i triben
             }
             if (getStoredHeadCount() > 0) {
                 for (Map.Entry<String, Integer> headEntry : storedHeads.entrySet()) {
                     OfflinePlayer p = Bukkit.getOfflinePlayer(headEntry.getKey());
-                    ItemStack head = ItemManager.getHead(p, Component.text(headEntry.getKey() + " died to death"));
+                    ItemStack head = ItemManager.getHead(p, Component.text(headEntry.getKey() + " died to death")); // deathmessages blir ikke lagra når et hode blir tatt opp i alteret
                     head.setAmount(headEntry.getValue());
                     Item headItem = Main.WORLD.dropItemNaturally(LOCATION, head);
                     headItem.setUnlimitedLifetime(true);
@@ -334,11 +335,11 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
 
         kromerComp = getComponent(kromer, addedKromer, kromerComp, ACTIVATION_COST_KROMER);
         NamedTextColor activateColor;
-        if (heads == ACTIVATION_COST_HEADS && kromer == ACTIVATION_COST_KROMER) {
+        if (heads == ACTIVATION_COST_HEADS && kromer == ACTIVATION_COST_KROMER) { // hvis man har nok hoder og penger satt inn
             activateColor = NamedTextColor.GREEN;
-        } else if(heads == 0 && kromer == 0) {
+        } else if(heads == 0 && kromer == 0) { // hvis ingenting er satt inn
             activateColor = NamedTextColor.RED;
-        } else {
+        } else { // hvis det er noe fra før av som er satt inn, blir det oransj, og hvis noe nytt blir satt inn, vises det som gult
             activateColor = addedHeads || addedKromer ? NamedTextColor.YELLOW : NamedTextColor.GOLD;
         }
         activateComp = activateComp.color(activateColor);
@@ -347,7 +348,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         ItemMeta meta = item.getItemMeta();
         meta.displayName(activateComp);
         meta.lore(List.of(headsComp, kromerComp));
-        meta.setCustomModelData(77012);
+        meta.setCustomModelData(77012); // tannhjul texture
         item.setItemMeta(meta);
         return item;
     }
@@ -367,11 +368,13 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
     }
 
     private ItemStack getRespawnItem() {
-        // Player
-        Component playerComp = Component.text("Player: " + selectedPlayerID + ". ");
-        Component playerInfo;
+        // Shows selected player
+        String selectedPlayer = "None";
+        if (Manager.getMember(selectedPlayerID) != null) selectedPlayer = Manager.getMember(selectedPlayerID).NAME;
+        Component playerComp = Component.text("Player: " + selectedPlayer + ". ");
+        Component playerInfo; // shows additional info like cooldown timer
 
-        if (!Objects.equals(selectedPlayerID, "NONE")) {
+        if (selectedPlayerID != null) {
             Member member = Manager.getMember(selectedPlayerID);
             if (member != null) {
                 if (!member.isAlive()) {
@@ -398,14 +401,14 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
         }
         // Cooldown
         int reducedTime = addedKromer * REDUCED_MINUTES_PER_COIN;
-        Component cooldownTitle = Component.text("Cooldown: ");
+        Component cooldownTitle = Component.text("Cooldown: "); // viser en cooldown bar, der grønt er tid man har venta, rødt er tid som er igjen, og gult er tid som er igjen men som vil bli skippa om man betaler inn pengene
         Component cooldownBar = Component.text("|".repeat(COOLDOWN_TIME - cooldown), NamedTextColor.GREEN)
                 .append(Component.text("|".repeat(Math.min(reducedTime, cooldown)), NamedTextColor.YELLOW))
                 .append(Component.text("|".repeat(Math.max(cooldown - reducedTime, 0)), NamedTextColor.RED));
         Component cooldownTextAddedKromers = Component.text("");
         NamedTextColor cooldownTextColor = NamedTextColor.GOLD;
         NamedTextColor cooldownTitleColor = NamedTextColor.GOLD;
-        if (addedKromer > 0) {
+        if (addedKromer > 0) { // viser hvor mange minutter som skippes hvis man betaler inn pengene
             cooldownTextAddedKromers = Component.text(" - " + Math.min(reducedTime, cooldown), addedKromer >= cooldown ? NamedTextColor.GREEN : NamedTextColor.YELLOW);
             if (reducedTime >= cooldown) {
                 cooldownTitleColor = NamedTextColor.GREEN;
@@ -435,7 +438,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
                 clickText = Component.text("Add kromers and click here to reduce the timer. (1kr > -" + REDUCED_MINUTES_PER_COIN + " min)");
             }
         }
-        // item
+        // settings item
         ItemStack item = new ItemStack(Material.FIREWORK_STAR);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Component.text("Status", NamedTextColor.DARK_PURPLE));
@@ -444,7 +447,7 @@ public class RevivalAltar implements PostInit{ // RESPAWN ALTER DATA: koordinat 
                 cooldownTitle.append(cooldownBar).append(cooldownText),
                 clickText
         )); // add mer i lista
-        meta.setCustomModelData(77012);
+        meta.setCustomModelData(77012); // tannhjul texture
         item.setItemMeta(meta);
         return item;
     }
