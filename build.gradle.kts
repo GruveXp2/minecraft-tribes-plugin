@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 plugins {
     java
     id("com.gradleup.shadow") version "9.3.0"
+    kotlin("jvm")
 }
 
 repositories {
@@ -13,6 +14,7 @@ repositories {
 dependencies {
     implementation(libs.com.fasterxml.jackson.core.jackson.databind)
     compileOnly(libs.io.papermc.paper.paper.api)
+    testImplementation(kotlin("test"))
 }
 
 val buildNumberFile = file("build-number.txt")
