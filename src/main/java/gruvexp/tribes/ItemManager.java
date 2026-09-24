@@ -20,8 +20,6 @@ import java.util.*;
 public class ItemManager { // recipes og items
 
     public static final HashMap<UUID, HashMap<String, ItemStack>> playerCoins = new HashMap<>();
-    public static ItemStack REVIVAL_ALTAR;
-    public static ItemStack ACTIVATED_REVIVAL_ALTAR;
     private static final HashSet<UUID> playersThatHasRegisteredRecipes = new HashSet<>();
 
     public static void registerCoinItems() { // registrerer coins for alle registrerte members
@@ -31,11 +29,6 @@ public class ItemManager { // recipes og items
                 registerCoinItems(playerID);
             }
         }
-    }
-
-    public static void registerAltar() {
-        registerAltarItems();
-        registerAltarRecipe();
     }
     
     public static ItemStack getStarterItems(UUID playerID) { // gir 4 gold kromer til en player
@@ -167,22 +160,6 @@ public class ItemManager { // recipes og items
         playerCoins.put(playerID, coins);
     }
 
-    private static void registerAltarItems() {
-        REVIVAL_ALTAR = new ItemStack(Material.FIREWORK_STAR);
-        ItemMeta altarMeta = REVIVAL_ALTAR.getItemMeta();
-        altarMeta.displayName(Component.text("Altar of Revival", NamedTextColor.LIGHT_PURPLE));
-        altarMeta.lore(List.of(Component.text("not activated")));
-        altarMeta.setCustomModelData(77010);
-        REVIVAL_ALTAR.setItemMeta(altarMeta);
-
-        ACTIVATED_REVIVAL_ALTAR = new ItemStack(Material.FIREWORK_STAR);
-        ItemMeta activeAltarMeta = ACTIVATED_REVIVAL_ALTAR.getItemMeta();
-        activeAltarMeta.displayName(Component.text("Altar of Revival", NamedTextColor.LIGHT_PURPLE));
-        activeAltarMeta.lore(List.of(Component.text("activated")));
-        activeAltarMeta.setCustomModelData(77011);
-        ACTIVATED_REVIVAL_ALTAR.setItemMeta(activeAltarMeta);
-    }
-
     public static void registerCoinRecipes(UUID playerID) { // recipes with coins
 
         if (playersThatHasRegisteredRecipes.contains(playerID)) {return;} // returnerer hvis playeren allerede her registrert recipes
@@ -238,24 +215,5 @@ public class ItemManager { // recipes og items
         Bukkit.addRecipe(netheriteToDiamond);
         //p.discoverRecipe(netheriteToDiamond.getKey());
         playersThatHasRegisteredRecipes.add(playerID);
-    }
-
-    private static void registerAltarRecipe() { // recipes without coins
-        // create a NamespacedKey for your recipe
-        NamespacedKey altarrecipe = new NamespacedKey(Main.getPlugin(), "altar_of_revival");
-
-        ShapedRecipe revivalAltar = new ShapedRecipe(altarrecipe, REVIVAL_ALTAR);
-
-        revivalAltar.shape(
-                " T ",
-                "WCW",
-                "SBS"
-        );
-        revivalAltar.setIngredient('T', Material.TOTEM_OF_UNDYING);
-        revivalAltar.setIngredient('W', Material.LIGHT_BLUE_CARPET);
-        revivalAltar.setIngredient('C', Material.RECOVERY_COMPASS);
-        revivalAltar.setIngredient('S', Material.SMOOTH_STONE);
-        revivalAltar.setIngredient('B', Material.BEACON);
-        Bukkit.addRecipe(revivalAltar);
     }
 }

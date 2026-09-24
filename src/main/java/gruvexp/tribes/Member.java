@@ -86,8 +86,6 @@ public class Member implements PostInit{
     public void die() {
         deaths++;
 
-        boolean respawned = respawnAtAltarIfAvailable();
-        if (respawned) {return;}
         Player p = Bukkit.getPlayer(ID);
         Location deathLocation = p.getLocation();
         if (deathLocation.getWorld() == Bukkit.getWorld("Tribes_the_end") && deathLocation.getY() < 0) {
@@ -145,48 +143,6 @@ public class Member implements PostInit{
     @JsonIgnore
     public boolean isOnline() {
         return Bukkit.getPlayer(ID) != null;
-    }
-
-    public void playerJoined() {
-        if (respawnCooldownTask == null) { // playeren lever og levde før de leava
-            Bukkit.getPlayer(ID).setGameMode(GameMode.SURVIVAL);
-            return;
-        }
-        if (respawnCooldownTask.isCancelled()) { // playeren daua før de leava, men respawna mens de var borte
-            respawnNaturally(Objects.requireNonNull(Bukkit.getPlayer(ID)));
-        } else { // playeren daua før de leava og er fortsatt dau når de jorner igjen
-            boolean respawned = respawnAtAltarIfAvailable(); // respawner ved et alter hvis det er et ledig et. hvis ikke så kommer timer opp og man venter på at timeren går ned eller et alter blir ledig
-            if (respawned) {return;}
-            Bukkit.getPlayer(ID).setGameMode(GameMode.SPECTATOR);
-            respawnCooldownTask.playerJoined();
-            if (Tribes.getDeathLocation(ID) == null) {
-                Tribes.setDeathLocation(ID, Objects.requireNonNull(Bukkit.getPlayer(ID)).getLocation());
-            }
-        }
-    }
-
-    public boolean respawnAtAltarIfAvailable() { // kalles fra andre steder. Er ikke sikkert at playeren respawner, kommer an på om det er alter tilgjengelige
-        // forventes at playeren både er online og dau
-        RevivalAltar altar = Tribes.getAvailableAltar(ID);
-        if (altar != null) {
-            Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> {
-                Player p = Bukkit.getPlayer(ID);
-                respawnAtAltar(p, altar);
-            }, 100L); // 100L = 5 seconds (20 ticks per second)
-            return true;
-        }
-        return false;
-    }
-
-    public void respawnAtAltar(Player p ,RevivalAltar altar) { // calles direkte når et alter blir available og playeren kan respawnes
-        if (respawnCooldownTask != null) {
-            respawnCooldownTask.remove();
-            respawnCooldownTask = null;
-        }
-        respawnCooldown = 0;
-        Bukkit.broadcast(Component.text(NAME + " was revived", NamedTextColor.YELLOW)); // finn ut åssen man gjør at det blir gul tekst i cmden
-        p.setGameMode(GameMode.SURVIVAL);
-        altar.respawn(p);
     }
 
     public void respawnNaturally(Player p) {

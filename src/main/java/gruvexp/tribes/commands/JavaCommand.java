@@ -137,17 +137,6 @@ public class JavaCommand implements CommandExecutor {
                             member.addKromers(Δkr);
                             p.sendMessage(Component.text("Successfully changed registered kromer balance by " + Δkr, NamedTextColor.GRAY));
                         }
-                        case "get_altar", "give_altar", "a" -> {
-                            p.getInventory().addItem(ItemManager.REVIVAL_ALTAR);
-                            Bukkit.broadcastMessage(String.format("%s%s hacked: gave themself an altar of revival", ChatColor.RED, p.getName()));
-                        }
-                        case "altars", "as" -> {
-                            StringBuilder out = new StringBuilder("Current altars:\n");
-                            for (String tribeID : Tribes.getTribeIDs()) {
-                                out.append("\n").append(tribeID).append(": ").append(Tribes.getTribe(tribeID).getAltarInfo());
-                            }
-                            p.sendMessage(out.toString());
-                        }
                         case "sb" -> {
                             ItemStack itemStack = p.getInventory().getItemInMainHand();
                             Item item = Main.WORLD.dropItemNaturally(p.getLocation().add(0, -2, 0), itemStack);

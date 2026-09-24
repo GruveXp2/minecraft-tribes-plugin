@@ -60,7 +60,6 @@ public final class Main extends JavaPlugin {
         Tribes.loadData(); // loading json data
         ItemManager.registerCoinItems(); // register coin items for all members from the json file
         Tribes.postInit(); // init objects that need access to their tribe object
-        ItemManager.registerAltar();
         Tribes.pause();
         if (WORLD.getTime() < 41*24000) {
             new NetherEndCooldown().runTaskTimer(this, 0L, 24000L);

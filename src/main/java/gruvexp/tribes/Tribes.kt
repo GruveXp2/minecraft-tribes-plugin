@@ -24,10 +24,6 @@ object Tribes {
     private val playerPauseCoords = HashMap<UUID?, Location?>()
     private val playerDeathCoords = HashMap<UUID?, Location?>()
     private val playerSpectatingStatus = HashMap<UUID?, Boolean?>()
-    private val revivalAltars =
-        HashMap<Location?, RevivalAltar?>() // har refrences til revivalalterene. Alt gjøres fra alter objektet
-    private val availableAltars =
-        HashMap<UUID?, HashSet<RevivalAltar?>?>() // hver player har et sett med altere som er klare til å respawne playeren om den dauer
     private val postInitObjects = HashSet<PostInit>()
     private val pauseBar = Bukkit.createBossBar("Game Paused", BarColor.YELLOW, BarStyle.SOLID)
     private var tribes = HashMap<String?, Tribe>()
@@ -37,11 +33,11 @@ object Tribes {
     var isReducingCooldowns: Boolean = false
         private set
     private var pauseCooldown: PauseIn1Min? = null
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     var kromerPool: Int = 0
         private set
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun pause() {
         if (isPaused) {
             return
@@ -68,7 +64,7 @@ object Tribes {
         }
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun unPause() {
         if (!isPaused) {
             return
@@ -96,27 +92,27 @@ object Tribes {
         playerPauseCoords.put(playerID, loc)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun getPauseLocation(playerID: UUID?): Location? {
         return playerPauseCoords.get(playerID)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun setDeathLocation(playerID: UUID?, loc: Location?) {
         playerDeathCoords.put(playerID, loc)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun getDeathLocation(playerID: UUID?): Location? {
         return playerDeathCoords.get(playerID)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun schedulePostInit(`object`: PostInit?) {
         postInitObjects.add(`object`!!)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun postInit() {
         for (`object` in postInitObjects) {
             `object`.postInit()
@@ -135,106 +131,57 @@ object Tribes {
         }
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun addTribe(tribe: Tribe) {
         tribes.put(tribe.ID, tribe)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun tribeExists(tribeID: String?): Boolean {
         return tribes.containsKey(tribeID)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun getTribe(tribeID: String?): Tribe {
         val tribe: Tribe = tribes.get(tribeID)!!
         requireNotNull(tribe) { "The tribe \"" + tribeID + "\" doesnt exist!" }
         return tribe
     }
 
-    @kotlin.jvm.JvmStatic
-    fun registerAltar(loc: Location?, altar: RevivalAltar?) {
-        revivalAltars.put(loc, altar)
-    }
-
-    @kotlin.jvm.JvmStatic
-    fun getAltar(loc: Location?): RevivalAltar? {
-        return revivalAltars.get(loc)
-    }
-
-    @kotlin.jvm.JvmStatic
-    fun unRegisterAltar(loc: Location?) {
-        revivalAltars.remove(loc)
-    }
-
-    @kotlin.jvm.JvmStatic
-    fun provideAltar(altar: RevivalAltar) { // gjør at det er available for spawning
-        val selectedPlayerID = altar.getSelectedPlayerID()
-        availableAltars.computeIfAbsent(selectedPlayerID) { k: UUID? -> HashSet<RevivalAltar?>() }
-        availableAltars.get(selectedPlayerID)!!.add(altar)
-
-        //debugMessage("RevivalAltar at " + Utils.toString(altar.LOCATION) + " now available to spawn " + selectedPlayer);
-        if (availableAltars.get(selectedPlayerID)!!.size == 1) { // hvis ingen altere var ledige før og dette er det første som ble ledig, skjekk om selectedPlayer er dau og venter på et tilgjengelig alter, hvis det så er jo dette alteret ledig og da spawner vi playeren
-            val member = getMember(selectedPlayerID)
-            if (member != null && !member.isAlive() && member.isOnline()) {
-                val p = Bukkit.getPlayer(selectedPlayerID)
-                member.respawnAtAltar(p, altar)
-            }
-        }
-    }
-
-    @kotlin.jvm.JvmStatic
-    fun withdrawAltar(altar: RevivalAltar) {
-        val selectedPlayerID = altar.getSelectedPlayerID()
-        availableAltars.get(selectedPlayerID)!!.remove(altar)
-        //debugMessage("RevivalAltar at " + Utils.toString(altar.LOCATION) + " no longer available");
-    }
-
-    @kotlin.jvm.JvmStatic
-    fun getAvailableAltar(playerID: UUID?): RevivalAltar? { // returnerer et random alter som er klar til å spawne inn playeren
-        val altarSet = availableAltars.get(playerID)
-        if (altarSet == null) {
-            return null
-        }
-        val altars = ArrayList<RevivalAltar?>(altarSet)
-        if (altars.isEmpty()) return null
-        return altars.getFirst()
-    }
-
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     val tribeIDs: MutableSet<String?>
         get() = tribes.keys
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun getTribes(): MutableCollection<Tribe> {
         return tribes.values
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     val memberIDs: MutableSet<UUID>
         get() = members.keys
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun registerMember(member: Member) {
         members.put(member.ID, member)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun getMember(playerID: UUID?): Member? {
         return members.get(playerID!!)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun unRegisterMember(playerID: UUID?) {
         members.remove(playerID!!)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun handleDeath(playerID: UUID?) {
         playerSpectatingStatus.put(playerID, false)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun messagePlayers(message: String) {
         Bukkit.getOnlinePlayers().forEach { p: Player -> p.sendMessage(message) }
     }
@@ -243,13 +190,13 @@ object Tribes {
         Bukkit.getOnlinePlayers().forEach { p: Player -> p.sendMessage(message) }
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun debugMessage(message: String?) { // used 4 debugging stuff by printing it in the chat
         messagePlayers(ChatColor.GRAY.toString() + "[DEBUG]: " + message)
         Bukkit.getLogger().info("[DEBUG]: " + message)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun considerPauseToggle() {
         if (Main.WORLD.getName() == Main.testWorldName) { // TEST DEBUG SKAL FJERNES ETTERPÅ!!! <=============
             unPause()
@@ -301,7 +248,7 @@ object Tribes {
         }
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun considerCooldownReduction() { // hvis alle er daue så reduserers cooldownen til den første spawner
         //debugMessage("considering cooldown reduction");
         for (tribe in tribes.values) {
@@ -325,12 +272,12 @@ object Tribes {
         CooldownReduction(respawnCooldowns).runTaskTimer(Main.getPlugin(), 0, 1)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun stopCooldownReduction() {
         isReducingCooldowns = false
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun handlePlayerJoin(p: Player) {
         pauseBar.addPlayer(p)
         if (isPaused) {
@@ -338,7 +285,7 @@ object Tribes {
         }
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun handleMemberLeave(playerID: UUID) { // når en player leaver triben
         val p = Bukkit.getPlayer(playerID)
         if (p == null) {
@@ -347,12 +294,12 @@ object Tribes {
         pauseBar.removePlayer(p)
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun addKromersToPool(kromer: Int) {
         kromerPool += kromer
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun saveData() {
         if (tribes.isEmpty()) {
             return
@@ -374,7 +321,7 @@ object Tribes {
         }
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun loadData() {
         // setter gamerules
         Main.WORLD.setGameRule<Boolean?>(GameRule.DO_DAYLIGHT_CYCLE, true)
@@ -401,7 +348,7 @@ object Tribes {
         }
     }
 
-    @kotlin.jvm.JvmStatic
+    @JvmStatic
     fun toTextColor(chatColor: ChatColor): NamedTextColor {
         return when (chatColor) {
             ChatColor.BLACK, ChatColor.ITALIC, ChatColor.UNDERLINE, ChatColor.STRIKETHROUGH, ChatColor.BOLD -> NamedTextColor.BLACK

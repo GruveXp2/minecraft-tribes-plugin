@@ -74,30 +74,6 @@ public class ItemListener implements Listener {
                 considerOwnerChange(itemStack, member);
                 e.setCurrentItem(itemStack); // oppdaterer itemet i eventen
             }
-        } else if (e.getView().title().equals(RevivalAltar.NAME) && /* Man er inne på et alter */
-                ((e.getCurrentItem() != null && (e.getCurrentItem().getType() == Material.FIREWORK_STAR || e.getCurrentItem().getType() == Material.PLAYER_HEAD)) || /* Man plasserte ned et item i inventoriet */
-                (e.getCursor().getType() == Material.FIREWORK_STAR || e.getCursor().getType() == Material.PLAYER_HEAD))) { /* Man plukka opp et item cursoren */
-
-            inventory = e.getView().getTopInventory();
-            Location loc = inventory.getLocation();
-            //Manager.debugMessage("inv loc: " + Utils.toString(loc));
-            RevivalAltar altar = Tribes.getAltar(loc);
-            ItemStack clickedItem = e.getCurrentItem();
-
-            if (clickedItem.getType() == Material.FIREWORK_STAR && clickedItem.getItemMeta().hasCustomModelData() && clickedItem.getItemMeta().getCustomModelData() == 77012) { // trykka på settings itemet
-                e.setCancelled(true); // sånn at de ikke plukker den greia opp
-                // method som collekter items og updater den ting greinga
-                if (altar.isActivated()) {
-                    altar.collectCoinsForCooldownSkipping(inventory);
-                } else {
-                    altar.collectItemsForActivation(inventory);
-                }
-            } else {
-                Inventory finalInventory = inventory;
-                Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> { // bøgger noen ganger, hvis man hovrer over settings itemet rett etterpå så endres han ikke
-                    altar.updateInfo(finalInventory); // sånn at han skjekker etter inv eventen har skjedd
-                }, 4);
-            }
         }
     }
 
@@ -109,27 +85,6 @@ public class ItemListener implements Listener {
             //Manager.debugMessage("Cursor is null");
             item = e.getOldCursor();
             //Manager.debugMessage(item.getType().toString());
-        }
-        if (e.getView().title().equals(RevivalAltar.NAME) && (item.getType() == Material.FIREWORK_STAR || item.getType() == Material.PLAYER_HEAD)) {
-            Inventory inventory = e.getInventory();
-            //Manager.debugMessage("A");
-            Location loc = inventory.getLocation();
-            RevivalAltar altar = Tribes.getAltar(loc);
-            if (item.getType() == Material.FIREWORK_STAR && item.getItemMeta().hasCustomModelData() && item.getItemMeta().getCustomModelData() == 77012) { // trykka på settings itemet
-                //Manager.debugMessage("A1");
-                e.setCancelled(true); // sånn at de ikke plukker den greia opp
-                // method som collekter items og updater den ting greinga
-                if (altar.isActivated()) {
-                    altar.collectCoinsForCooldownSkipping(inventory);
-                } else {
-                    altar.collectItemsForActivation(inventory);
-                }
-            } else {
-                //Manager.debugMessage("A2");
-                Bukkit.getScheduler().runTaskLater(Main.getPlugin(), () -> { // bøgger noen ganger, hvis man hovrer over settings itemet rett etterpå så endres han ikke
-                    altar.updateInfo(inventory); // sånn at han skjekker etter inv eventen har skjedd
-                }, 1);
-            }
         }
     }
 

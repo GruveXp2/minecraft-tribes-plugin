@@ -21,7 +21,6 @@ public class Tribe {
     @JsonProperty("displayName")
     private String displayName;
     private Map<UUID, Member> members = new HashMap<>();
-    private final Map<Location, RevivalAltar> revivalAltars = new HashMap<>(); // <location, revivalAltar>
     private Set<Member> activeMembers = new HashSet<>(); // folk som er online eller har cooldown, som tels som at de er "online" og gjør at motstanderteamet kan spille
 
     public Tribe(@JsonProperty("id") String id, @JsonProperty("color") ChatColor color, @JsonProperty("displayName") String displayName) {
@@ -151,47 +150,9 @@ public class Tribe {
         Tribes.handleDeath(playerID); // setter isSpectating til false
     }
 
-    public void registerAltar(Location loc, RevivalAltar altar) {
-        revivalAltars.put(loc, altar);
-    }
-
-    public void unRegisterAltar(Location loc) {
-        revivalAltars.remove(loc);
-    }
-
-    @SuppressWarnings("unused")
-    @JsonProperty("revivalAltars") @JsonInclude(JsonInclude.Include.NON_NULL)
-    private HashSet<RevivalAltar> getAltarsJSON() {
-        if (revivalAltars.isEmpty()) {
-            return null;
-        }
-        return new HashSet<>(revivalAltars.values());
-    }
-
-    @SuppressWarnings("unused")
-    @JsonProperty("revivalAltars")
-    private void setAltarsJSON(ArrayList<RevivalAltar> altars) {
-        for (RevivalAltar altar : altars) {
-            revivalAltars.put(altar.LOCATION, altar);
-            altar.registerTribe(this);
-        }
-    }
-
-    @JsonIgnore
-    public String getAltarInfo() { // DEBUG
-        StringBuilder out = new StringBuilder("[");
-        for (Map.Entry<Location, RevivalAltar> altarEntry : revivalAltars.entrySet()) {
-            Location loc = altarEntry.getKey();
-            out.append("\n{").append(loc.getX()).append(", ").append(loc.getY()).append(", ").append(loc.getZ()).append(", activated=").append(altarEntry.getValue().isActivated()).append("}, ");
-        }
-        out.append("]");
-        return out.toString();
-    }
-
     public void handleJoin(Player p) { // when someone comes online
         UUID playerID = p.getUniqueId();
         Member member = getMember(playerID);
-        member.playerJoined();
         activeMembers.add(member);
         Tribes.handlePlayerJoin(p);
         ItemManager.registerCoinRecipes(playerID);
