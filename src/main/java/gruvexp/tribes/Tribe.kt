@@ -9,23 +9,29 @@ import java.util.*
 class Tribe(
     @JsonProperty("playerId") playerId: String,
     @field:JsonProperty("color") @param:JsonProperty("color") var color: NamedTextColor,
-    @JsonProperty("name") var name: String
+    @JsonProperty("name") var name: String,
+    @JsonProperty("name") var playerName: String
 ) {
-    @JsonProperty("id")
+    @JsonProperty("playerId")
     val playerId: UUID = UUID.fromString(playerId)
 
     val displayName: Component
         get() = Component.text(name, color)
 
-    var coinBalance: Int = 0
+    val commandName: String
+        get() = name.lowercase().replace(" ", "_")
+
+    var kromerBalance: Int = 0
         private set
 
+    constructor(p: Player, name: String, color: NamedTextColor) : this(p.uniqueId.toString(), color, name, p.name)
+
     fun addKromers(kromers: Int) {
-        coinBalance += kromers
+        kromerBalance += kromers
     }
 
     fun handleJoin(p: Player) { // when someone comes online
-        val playerID = p.getUniqueId()
-        ItemManager.registerCoinRecipes(playerID)
+        playerName = p.name
+        ItemManager.registerCoinRecipes(p.uniqueId)
     }
 }

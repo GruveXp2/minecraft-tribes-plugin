@@ -29,38 +29,32 @@ class TribeCommand : CommandExecutor {
 
         when (val oper = args[0]) {
             "stats" -> {
-                var totalCoins = 0
+                val tribes = Tribes.getTribes()
+                val totalCoins = tribes.sumOf { it.kromerBalance }
                 val lines = 100 // hvor mange |
-                val tribeBalance = mutableMapOf<Tribe, Int>() // brukt for å beregne hvor mange kr hver tribe har i kromerDisctribution
-                for (tribe in Tribes.getTribes()) {
-                    tribeBalance[tribe] = tribe.coinBalance
-                    totalCoins += tribe.coinBalance
-                }
                 return Component.text("Kromer distribution: ").apply {
-                    tribeBalance.forEach { (tribe, balance) ->
-                        append(Component.text("|".repeat(balance * lines / totalCoins), tribe.color))
+                    tribes.forEach {
+                        append(Component.text("|".repeat(it.kromerBalance * lines / totalCoins), it.color))
                     }
 
                     append(Component.text("Kromer pool: "))
                     append(Component.text("${Tribes.kromerPool} kr", NamedTextColor.GREEN))
                     appendNewline()
 
-                    Tribes.getTribes().forEach {
-                        val balance = it.coinBalance
+                    tribes.forEach {
                         append(it.displayName)
                         append(Component.text(" (${it.playerId}): "))
-                        append(Component.text("$balance kr", NamedTextColor.GREEN))
+                        append(Component.text("${it.kromerBalance} kr", NamedTextColor.GREEN))
                         appendNewline()
                     }
                 }
             }
 
-            "create", "init" -> { // create <tribeID> <color> <displayName>
+            "create", "init" -> { // create <color> <displayName>
                 if (args.size == 2) return Component.text("you need to specify an id for your tribe\n", NamedTextColor.RED)
                     .append(Component.text("Usage: ", NamedTextColor.WHITE))
-                    .append(Component.text("/tribe create <tribe-id>", NamedTextColor.GREEN))
+                    .append(Component.text("/tribe create <tribe-id> <color?> <display-name>", NamedTextColor.GREEN))
 
-                val tribeId = args[1]
                 if (p == null) return Component.text("tribes must be created ingame", NamedTextColor.YELLOW)
 
                 val alreadyExistingTribe = Tribes.getTribe(p)
@@ -69,16 +63,17 @@ class TribeCommand : CommandExecutor {
                         .append(alreadyExistingTribe.displayName)
                         .append(Component.text(")")))
 
-                val color = args.getOrNull(2)?.lowercase()?.let {
+                val color = args.getOrNull(1)?.lowercase()?.let {
                     NamedTextColor.NAMES.value(it)
                 } ?: NamedTextColor.WHITE
-                if (args.size > 3) {
-                    val displayName = args.drop(3).joinToString(" ")
-                    Tribes.addTribe(p, Tribe(tribeId, color, displayName))
+                if (args.size > 2) {
+                    val displayName = args.drop(2).joinToString(" ")
+                    Tribes.addTribe(p, Tribe(p, displayName, color))
                     Bukkit.broadcast(Component.text("New tribe created: $displayName", NamedTextColor.GREEN))
                 } else {
-                    Tribes.addTribe(p, Tribe(tribeId, color, tribeId))
-                    Bukkit.broadcast(Component.text("New tribe created: $tribeId", NamedTextColor.GREEN))
+                    val displayName = "${p.name}'s tribe"
+                    Tribes.addTribe(p, Tribe(p, displayName, color))
+                    Bukkit.broadcast(Component.text("New tribe created: $displayName", NamedTextColor.GREEN))
                 }
                 p.displayName(Component.text(p.name, color))
                 return Component.empty()
