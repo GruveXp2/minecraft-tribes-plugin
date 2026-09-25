@@ -23,16 +23,6 @@ object Tribes {
         private set
 
     @JvmStatic
-    fun setDeathLocation(playerID: UUID?, loc: Location?) {
-        playerDeathCoords.put(playerID, loc)
-    }
-
-    @JvmStatic
-    fun getDeathLocation(playerID: UUID?): Location? {
-        return playerDeathCoords.get(playerID)
-    }
-
-    @JvmStatic
     fun addTribe(p: Player, tribe: Tribe) {
         tribes[tribe.playerId.toString()] = tribe
         playerTribes[p] = tribe
@@ -48,10 +38,6 @@ object Tribes {
         val tribe: Tribe = tribes.get(tribeID)!!
         requireNotNull(tribe) { "The tribe \"" + tribeID + "\" doesnt exist!" }
         return tribe
-    }
-
-    fun getTribe(p: Player): Tribe? {
-        return playerTribes[p]
     }
 
     fun getTribe(p: Player): Tribe? {

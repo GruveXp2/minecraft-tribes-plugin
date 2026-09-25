@@ -93,13 +93,6 @@ class TribeCommand : CommandExecutor {
                 return Component.empty()
             }
 
-            "test" -> {
-                checkNotNull(p)
-                val entity = p.spectatorTarget
-                val name = entity?.name ?: "noone"
-                return Component.text("Currently spectating: $name")
-            }
-
             "version" -> return Component.text("Plugin was last updated " + Main.VERSION)
             else -> return Component.text("'$oper' is not a valid operation!", NamedTextColor.RED)
         }
