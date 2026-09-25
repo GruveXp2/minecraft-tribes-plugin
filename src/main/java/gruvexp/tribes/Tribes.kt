@@ -3,7 +3,6 @@ package gruvexp.tribes
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
 import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.*
 import org.bukkit.entity.Player
 import java.io.File
@@ -15,29 +14,27 @@ object Tribes {
     // A godclass that probably breaks every SOLID rule
     @JvmField
     var friendlyFire: Boolean = false
-    private val playerDeathCoords = HashMap<UUID?, Location?>()
-    private var tribes = HashMap<String?, Tribe>()
+    private var tribes = HashMap<UUID, Tribe>()
     private var playerTribes = mutableMapOf<Player, Tribe>()
+    private val tribeIds = mutableMapOf<String, Tribe>()
     @JvmStatic
     var kromerPool: Int = 0
         private set
 
     @JvmStatic
     fun addTribe(p: Player, tribe: Tribe) {
-        tribes[tribe.playerId.toString()] = tribe
+        tribes[tribe.playerId] = tribe
         playerTribes[p] = tribe
     }
 
     @JvmStatic
     fun tribeExists(tribeID: String?): Boolean {
-        return tribes.containsKey(tribeID)
+        return tribeIds.containsKey(tribeID)
     }
 
     @JvmStatic
-    fun getTribe(tribeID: String?): Tribe {
-        val tribe: Tribe = tribes.get(tribeID)!!
-        requireNotNull(tribe) { "The tribe \"" + tribeID + "\" doesnt exist!" }
-        return tribe
+    fun getTribe(tribeId: String): Tribe? {
+        return tribeIds[tribeId]
     }
 
     fun getTribe(p: Player): Tribe? {
@@ -45,8 +42,9 @@ object Tribes {
     }
 
     @JvmStatic
-    val tribeIDs: MutableSet<String?>
-        get() = tribes.keys
+    fun getTribe(playerId: UUID): Tribe? {
+        return tribes[playerId]
+    }
 
     @JvmStatic
     fun getTribes(): MutableCollection<Tribe> {
@@ -122,25 +120,4 @@ object Tribes {
         }
     }
 
-    @JvmStatic
-    fun toTextColor(chatColor: ChatColor): NamedTextColor {
-        return when (chatColor) {
-            ChatColor.BLACK, ChatColor.ITALIC, ChatColor.UNDERLINE, ChatColor.STRIKETHROUGH, ChatColor.BOLD -> NamedTextColor.BLACK
-            ChatColor.DARK_BLUE -> NamedTextColor.DARK_BLUE
-            ChatColor.DARK_GREEN -> NamedTextColor.DARK_GREEN
-            ChatColor.DARK_AQUA -> NamedTextColor.DARK_AQUA
-            ChatColor.DARK_RED -> NamedTextColor.DARK_RED
-            ChatColor.DARK_PURPLE, ChatColor.MAGIC -> NamedTextColor.DARK_PURPLE
-            ChatColor.GOLD -> NamedTextColor.GOLD
-            ChatColor.GRAY -> NamedTextColor.GRAY
-            ChatColor.DARK_GRAY -> NamedTextColor.DARK_GRAY
-            ChatColor.BLUE -> NamedTextColor.BLUE
-            ChatColor.GREEN -> NamedTextColor.GREEN
-            ChatColor.AQUA -> NamedTextColor.AQUA
-            ChatColor.RED -> NamedTextColor.RED
-            ChatColor.LIGHT_PURPLE -> NamedTextColor.LIGHT_PURPLE
-            ChatColor.YELLOW -> NamedTextColor.YELLOW
-            ChatColor.WHITE, ChatColor.RESET -> NamedTextColor.WHITE
-        }
-    }
 }
