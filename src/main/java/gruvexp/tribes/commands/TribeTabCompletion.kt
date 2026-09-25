@@ -1,82 +1,26 @@
-package gruvexp.tribes.commands;
+package gruvexp.tribes.commands
 
-import gruvexp.tribes.Tribes;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
-import org.bukkit.entity.Player;
+import net.kyori.adventure.text.format.NamedTextColor
+import org.bukkit.command.Command
+import org.bukkit.command.CommandSender
+import org.bukkit.command.TabCompleter
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+class TribeTabCompletion : TabCompleter {
+    override fun onTabComplete(sender: CommandSender, command: Command, label: String, args: Array<String>): MutableList<String> {
+        if (args.size == 1) return mutableListOf("create", "stats")
 
-public class TribeTabCompletion implements TabCompleter {
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-
-        if (args.length == 1) {
-            return List.of("create", "join", "switch", "leave", "stats", "status", "unpause");
-        }
-        try {
-            String oper = args[0];
-            switch (oper) {
-                case "create", "add" -> { // /add <tribeID> <color> <displayName>
-                    if (args.length == 2) {
-                        return List.of("<tribe id>");
-                    }
-                    if (args.length == 3) { // liste over farger man kan bruke
-                        return Arrays.stream(ChatColor.values())
-                                .map(Enum::name)
-                                .map(String::toLowerCase)
-                                .collect(Collectors.toList());
-                    }
-                    if (args.length == 4) {
-                        return List.of("<display name>");
-                    }
-                }
-                case "join" -> {
-                    if (args.length == 2) {
-                        return new ArrayList<>(Tribes.getTribeIDs());
-                    }
-                    if (args.length == 3) {
-                        return Bukkit.getOnlinePlayers().stream()
-                                .map(Player::getName)
-                                .collect(Collectors.toCollection(ArrayList::new));
-                    }
-                }
-                case "switch" -> {
-                    if (args.length == 2) {
-                        return new ArrayList<>(Tribes.getTribeIDs());
-                    }
-                    if (args.length == 3) {
-                        return Bukkit.getOnlinePlayers().stream()
-                                .map(Player::getName)
-                                .collect(Collectors.toCollection(ArrayList::new));
-                    }
-                }
-                case "leave", "kick" -> {
-                    if (args.length == 2) {
-                        return new ArrayList<>(Tribes.getTribeIDs());
-                    }
-                    String tribeID = args[1];
-                    if (args.length == 3) {
-                        return Tribes.getTribe(tribeID).getMembers()
-                            .stream()
-                            .map(member -> member.NAME)
-                            .collect(Collectors.toCollection(ArrayList::new));
-                    }
-                }
-                case "stats" -> {
-                    return new ArrayList<>(0);
-                }
-                default -> throw new IllegalArgumentException(ChatColor.RED + "\"" + oper + "\" is not a valid operation!");
+        when (val oper = args[0]) {
+            "create", "init" -> { // create <color> <displayName>
+                if (args.size == 2) return NamedTextColor.NAMES.keys().map { it.lowercase() }.toMutableList()
+                if (args.size == 3) return mutableListOf("<display name>")
+                return mutableListOf()
             }
-        } catch (IllegalArgumentException e) {
-            return List.of(e.getMessage());
+
+            "stats" -> {
+                return mutableListOf()
+            }
+
+            else -> return mutableListOf("'$oper' is not a valid operation!")
         }
-        return new ArrayList<>(0);
     }
 }
