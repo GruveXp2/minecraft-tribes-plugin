@@ -46,8 +46,6 @@ public final class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new RightClickEntityListener(), this);
         getCommand("tribe").setExecutor(new TribeCommand());
         getCommand("tribe").setTabCompleter(new TribeTabCompletion());
-        getCommand("spec").setExecutor(new SpectateCommand());
-        getCommand("spec").setTabCompleter(new SpectateTabCompleter());
         getCommand("java").setExecutor(new JavaCommand());
         plugin = this;
         WORLD = Bukkit.getWorld(worldName);
@@ -59,8 +57,6 @@ public final class Main extends JavaPlugin {
         }
         Tribes.loadData(); // loading json data
         ItemManager.registerCoinItems(); // register coin items for all members from the json file
-        Tribes.postInit(); // init objects that need access to their tribe object
-        Tribes.pause();
         if (WORLD.getTime() < 41*24000) {
             new NetherEndCooldown().runTaskTimer(this, 0L, 24000L);
         }
