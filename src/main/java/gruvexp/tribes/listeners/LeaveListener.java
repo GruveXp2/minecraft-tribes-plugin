@@ -1,7 +1,6 @@
 package gruvexp.tribes.listeners;
 
 import gruvexp.tribes.Tribes;
-import gruvexp.tribes.Member;
 import gruvexp.tribes.Tribe;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,12 +13,8 @@ public class LeaveListener implements Listener {
     @EventHandler
     public void onPlayerLeave(PlayerQuitEvent e) {
         UUID playerID = e.getPlayer().getUniqueId();
-        Member member = Tribes.getMember(playerID);
-        if (member == null) {
-            return; // Player is not a member of the game
-        }
-        Tribe tribe = member.tribe();
-        if (tribe == null) {return;}
-        tribe.handleLeaveActive(playerID);
+        Tribe tribe = Tribes.getTribe(playerID);
+        if (tribe == null) {return;} // Player is not a member of the game
+        // will probably be used soon
     }
 }

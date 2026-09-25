@@ -2,6 +2,7 @@ package gruvexp.tribes.commands;
 
 import gruvexp.tribes.ItemManager;
 import gruvexp.tribes.Main;
+import gruvexp.tribes.Tribe;
 import gruvexp.tribes.Tribes;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -30,34 +31,9 @@ public class JavaCommand implements CommandExecutor {
             }
             String oper = args[0];
             switch (oper) {
-                case "accepttp" -> { // sender er den som trykka [YES/NO]
-                    if (args.length == 1) {
-                        throw new IllegalArgumentException("Server error: missing argument <player> (/java accepttp)");
-                    }
-                    String spectatingPlayerName = args[1];
-                    Player q = Bukkit.getPlayerExact(spectatingPlayerName); // den som skal spectate
-                    if (q == null) {
-                        throw new IllegalArgumentException("This player is no longer online");
-                    }
-                    if (q.getGameMode() != GameMode.SPECTATOR) {
-                        throw new IllegalArgumentException("This player can no longer spectate bc they respawned");
-                    }
-                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "spectate " + p.getName() + " " + spectatingPlayerName); // p telporteres til q
-                    q.sendMessage("You are now spectating " + p.getName());
-                    p.sendMessage(spectatingPlayerName + " is now spectating you");
-                }
-                case "declinetp" -> {
-                    if (args.length == 1) {
-                        throw new IllegalArgumentException("Server error: missing argument <player> (/java accepttp)");
-                    }
-                    String spectatingPlayerName = args[1];
-                    Player q = Bukkit.getPlayerExact(spectatingPlayerName); // den som skal spectate
-                    if (q == null || q.getGameMode() != GameMode.SPECTATOR) {return true;}
-                    q.sendMessage(p.getName() + " declined your spectate request");
-                }
                 case "hack", "hacc" -> {
                     if (!(p.getName().equals("GruveXp") || p.getName().equals("ColinStorm") || sender instanceof ConsoleCommandSender) || Main.WORLD.getName().equals(Main.testWorldName)) {
-                        throw new IllegalArgumentException("This command can only be used on test servers or by admins");
+                        throw new IllegalArgumentException("Admin abuse can only be performed by admins");
                     }
                     if (args.length == 1) {
                         throw new IllegalArgumentException("Error: missing argument <hack> (/java hack)");
@@ -79,7 +55,7 @@ public class JavaCommand implements CommandExecutor {
                             }
                             UUID targetPlayerID = targetPlayer.getUniqueId();
                             targetPlayer.getInventory().addItem(ItemManager.getStarterItems(targetPlayerID));
-                            Tribes.getMember(targetPlayerID).addKromers(320);
+                            Tribes.getTribe(targetPlayerID).addKromers(320);
                         }
                         case "change_registered_balance" -> {
                             if (args.length < 4) {
@@ -87,8 +63,8 @@ public class JavaCommand implements CommandExecutor {
                             }
                             String targetPlayerName = args[2];
                             UUID playerID = Bukkit.getOfflinePlayer(targetPlayerName).getUniqueId();
-                            Member member = Tribes.getMember(playerID);
-                            if (member == null) {
+                            Tribe tribe = Tribes.getTribe(playerID);
+                            if (tribe == null) {
                                 throw new IllegalArgumentException("That member doesnt exist!");
                             }
                             int Δkr;
@@ -97,7 +73,7 @@ public class JavaCommand implements CommandExecutor {
                             } catch (NumberFormatException e) {
                                 throw new IllegalArgumentException("\"" + args[3] + "\" is not a number!");
                             }
-                            member.addKromers(Δkr);
+                            tribe.addKromers(Δkr);
                             p.sendMessage(Component.text("Successfully changed registered kromer balance by " + Δkr, NamedTextColor.GRAY));
                         }
                         case "sb" -> {
@@ -111,9 +87,8 @@ public class JavaCommand implements CommandExecutor {
                             }
                             String color = args[2];
                             sender.sendMessage(Component.text(color, NamedTextColor.NAMES.value(color)));
-                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().color.toString() + "...");
-                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().color.name() + "...");
-                            p.sendMessage("Your tribe has color: " + Tribes.getMember(p.getUniqueId()).tribe().color + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getTribe(p.getUniqueId()).getColor().toString() + "...");
+                            p.sendMessage("Your tribe has color: " + Tribes.getTribe(p.getUniqueId()).getColor() + "...");
                         }
                         default -> throw new IllegalArgumentException("Error: wrong argument <hack> (/java hack)");
                     }

@@ -9,20 +9,16 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
 import java.util.Objects;
-import java.util.UUID;
 
 public class DeathListener implements Listener {
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        Member member = Tribes.getMember(p.getUniqueId());
-        if (member == null) {
+        Tribe tribe = Tribes.getTribe(p.getUniqueId());
+        if (tribe == null) {
             return; // Player is not a member of the game
         }
-        Tribe tribe = member.tribe();
-        if (tribe == null) {return;}
-        p.setGameMode(GameMode.SPECTATOR);
         Location deathLocation = e.getEntity().getLocation();
         if (deathLocation.getWorld() == Bukkit.getWorld("Tribes_the_end") && deathLocation.getY() < 0) {
             deathLocation = p.getBedSpawnLocation();
@@ -31,9 +27,7 @@ public class DeathListener implements Listener {
             }
         }
         p.teleport(deathLocation);
-        UUID playerID = p.getUniqueId();
         Bukkit.broadcastMessage(ChatColor.RED +  p.getName() + " ded");
-        tribe.death(playerID);
 
         Item droppedItem = Main.WORLD.dropItemNaturally(deathLocation, ItemManager.getHead(p, Objects.requireNonNull(e.deathMessage())));
         droppedItem.setUnlimitedLifetime(true);

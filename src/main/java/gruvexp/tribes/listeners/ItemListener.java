@@ -48,12 +48,12 @@ public class ItemListener implements Listener {
         Item item = e.getItem();
         ItemStack itemStack = item.getItemStack();
         Player p = (Player) e.getEntity();
-        Member pickupingMember = Tribes.getMember(p.getUniqueId());
-        if (pickupingMember == null) {
+        Tribe pickupingTribe = Tribes.getTribe(p.getUniqueId());
+        if (pickupingTribe == null) {
             Bukkit.broadcast(Component.text("Error! Player " + p.getName() + " tried to pick up a coin/head but arent registered in the tribe plugin. pls contact gruve"));
             return;
         }
-        boolean changedOwner = considerOwnerChange(itemStack, pickupingMember);
+        boolean changedOwner = considerOwnerChange(itemStack, pickupingTribe);
         if (changedOwner) item.setItemStack(itemStack);
     }
 
@@ -68,10 +68,10 @@ public class ItemListener implements Listener {
             if (e.getAction() == InventoryAction.PICKUP_ALL || e.getAction() == InventoryAction.PICKUP_HALF || e.getAction() == InventoryAction.PICKUP_ONE || e.getAction() == InventoryAction.PICKUP_SOME || e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) {
                 ItemStack itemStack = e.getCurrentItem();
                 Player p = (Player) e.getWhoClicked();
-                Member member = Tribes.getMember(p.getUniqueId());
-                if (member == null) return;
+                Tribe tribe = Tribes.getTribe(p.getUniqueId());
+                if (tribe == null) return;
                 assert itemStack != null;
-                considerOwnerChange(itemStack, member);
+                considerOwnerChange(itemStack, tribe);
                 e.setCurrentItem(itemStack); // oppdaterer itemet i eventen
             }
         }
@@ -104,13 +104,13 @@ public class ItemListener implements Listener {
                 }
                 int kromers = ItemManager.toKromer(itemStack);
                 lore.set(lore.size() - 1, pickupingTribe.getDisplayName());
-                meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingTribe.ID.toString());
+                meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingTribe.getPlayerId().toString());
                 meta.lore(lore);
                 pickupingTribe.addKromers(kromers); // adder kromers til playeren som plukka de opp
                 prevOwner.addKromers(-kromers); // fjerner kromers til playeren som eide det fra før av
             }
         } else { // player head
-            meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingTribe.ID.toString());
+            meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingTribe.getPlayerId().toString());
         }
         itemStack.setItemMeta(meta);
         return true;

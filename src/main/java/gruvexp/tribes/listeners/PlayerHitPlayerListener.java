@@ -1,7 +1,7 @@
 package gruvexp.tribes.listeners;
 
+import gruvexp.tribes.Tribe;
 import gruvexp.tribes.Tribes;
-import gruvexp.tribes.Member;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,14 +14,14 @@ public class PlayerHitPlayerListener implements Listener {
         if (!(e.getDamager() instanceof Player) || !(e.getEntity() instanceof Player)) {return;}
         // begge playersene må være registrert i en tribe
         Player p = (Player) e.getEntity();
-        Member pMember = Tribes.getMember(p.getUniqueId());
-        if (pMember == null) return;
+        Tribe defenderTribe = Tribes.getTribe(p.getUniqueId());
+        if (defenderTribe == null) return;
         Player q = (Player) e.getDamager();
-        Member qMember = Tribes.getMember(q.getUniqueId());
-        if (qMember == null) return;
+        Tribe attackerTribe = Tribes.getTribe(q.getUniqueId());
+        if (attackerTribe == null) return;
 
         //hvis friendlyfire er av og spillerene er på samme tribe, så gjør de ikke damag
-        if (!Tribes.friendlyFire && qMember.tribe() == pMember.tribe()) {
+        if (!Tribes.friendlyFire && true) { // TODO: der det står true, skal det heller sjekke om de er i en alianse
             e.setCancelled(true);
         }
     }
