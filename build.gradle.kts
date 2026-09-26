@@ -31,7 +31,7 @@ group = "gruvexp"
 version = "2.0.snapshot-$buildNumber"
 description = "The plugin used on the TribesInfinity server"
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(25))
 }
 
 tasks.withType<JavaCompile> {
