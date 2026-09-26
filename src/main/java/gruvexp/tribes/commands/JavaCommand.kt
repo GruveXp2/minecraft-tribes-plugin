@@ -1,8 +1,9 @@
 package gruvexp.tribes.commands
 
-import gruvexp.tribes.ItemManager.getStarterItems
+import gruvexp.tribes.Coin
+import gruvexp.tribes.ItemManager
 import gruvexp.tribes.Main
-import gruvexp.tribes.Tribes.getTribe
+import gruvexp.tribes.Tribes
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.format.NamedTextColor
 import org.bukkit.Bukkit
@@ -11,6 +12,7 @@ import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.command.ConsoleCommandSender
+import org.bukkit.entity.Item
 import org.bukkit.entity.Player
 
 class JavaCommand : CommandExecutor {
@@ -22,7 +24,7 @@ class JavaCommand : CommandExecutor {
             val oper = args[0]
             when (oper) {
                 "hack", "hacc" -> {
-                    require(!(!(p.name == "GruveXp" || p.name == "ColinStorm" || sender is ConsoleCommandSender) || Main.WORLD.name == Main.testWorldName)) { "Admin abuse can only be performed by admins" }
+                    require((p.name == "GruveXp" || p.name == "ColinStorm" || sender is ConsoleCommandSender) || Main.WORLD.name == Main.testWorldName) { "Admin abuse can only be performed by admins" }
                     require(args.size != 1) { "Error: missing argument <hack> (/java hack)" }
                     val hack = args[1]
                     when (hack) {
@@ -33,16 +35,15 @@ class JavaCommand : CommandExecutor {
                             requireNotNull(targetPlayer) { "Error: Player \"$targetPlayerName\" is not online!" }
                             val gruveXp = Bukkit.getPlayer("GruveXp")
                             requireNotNull(gruveXp) { "Bruhh gwuve not online :(" }
-                            val targetPlayerID = targetPlayer.uniqueId
-                            targetPlayer.inventory.addItem(getStarterItems(targetPlayerID))
-                            getTribe(targetPlayerID)!!.addKromers(320)
+                            targetPlayer.world.spawn(targetPlayer.location, Item::class.java)
+                                .apply { itemStack = ItemManager.getPoolCoins(Coin.GOLD, 4) }
                         }
 
                         "change_registered_balance" -> {
                             require(args.size >= 4) { "Error: not enough args! /java hack change_registered_balance <player> <amount>" }
                             val targetPlayerName = args[2]
                             val playerID = Bukkit.getOfflinePlayer(targetPlayerName).uniqueId
-                            val tribe = getTribe(playerID)
+                            val tribe = Tribes.getTribe(playerID)
                             requireNotNull(tribe) { "That member doesnt exist!" }
                             val Δkr: Int
                             try {
@@ -69,7 +70,7 @@ class JavaCommand : CommandExecutor {
                             require(args.size != 2) { "Error: missing argument <color> (/java hack test)" }
                             val color = args[2]
                             sender.sendMessage(Component.text(color, NamedTextColor.NAMES.value(color)))
-                            p.sendMessage("Your tribe has color: ${getTribe(p.uniqueId)!!.color}...")
+                            p.sendMessage("Your tribe has color: ${Tribes.getTribe(p.uniqueId)!!.color}...")
                         }
 
                         else -> throw IllegalArgumentException("Error: wrong argument <hack> (/java hack)")
