@@ -5,14 +5,15 @@ import gruvexp.tribes.Tribe
 import gruvexp.tribes.Tribes
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
+import net.kyori.adventure.text.event.ClickEvent
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextDecoration
 import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import java.util.*
 
 class TribeCommand : CommandExecutor {
     override fun onCommand(sender: CommandSender, command: Command, label: String, args: Array<String>): Boolean {
@@ -26,6 +27,18 @@ class TribeCommand : CommandExecutor {
         if (sender is Player) {
             p = sender
         }
+
+        if (args.isEmpty()) return Component.empty()
+            .append(Component.text("Welcome to the Tribes server!\n", NamedTextColor.GREEN, TextDecoration.BOLD))
+            .append(Component.text("- Run /tribe create to create your tribe\n"))
+            .append(Component.text("- Run "))
+            .append(Component.text("/tribe stats", NamedTextColor.AQUA, TextDecoration.UNDERLINED)
+                .clickEvent(ClickEvent.runCommand("/tribe stats")))
+            .append(Component.text(" to see stats of all tribes\n"))
+            .append(Component.text("- Run "))
+            .append(Component.text("/tribe chunk", NamedTextColor.AQUA, TextDecoration.UNDERLINED)
+                .clickEvent(ClickEvent.runCommand("/tribe chunk")))
+            .append(Component.text(" to see the chunks you have claimed, and to claim new chunks"))
 
         when (val oper = args[0]) {
             "stats" -> {
