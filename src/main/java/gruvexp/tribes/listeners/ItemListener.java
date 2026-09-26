@@ -24,6 +24,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class ItemListener implements Listener {
@@ -95,19 +96,25 @@ public class ItemListener implements Listener {
         if (itemStack.getType() == Material.FIREWORK_STAR && meta.hasCustomModelData() && meta.getCustomModelData() >= 77000 && meta.getCustomModelData() < 77005) { // skjekker om itemet er en coin (customodeldata er mellom 77000 og 77004)
             List<Component> lore = meta.lore();
             if (lore != null) {
-                String prevPlayerIDstr = meta.getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
-                UUID prevPlayerID = getUUIDFromCoinItem(prevPlayerIDstr, lore);
-                Tribe prevOwner = Tribes.getTribe(prevPlayerID);
-                if (prevOwner == null) {
-                    Bukkit.broadcast(Component.text("Error: failed to change coin owners (pls contact gruve)"));
-                    return false;
-                }
                 int kromers = ItemManager.toKromer(itemStack);
+                String prevPlayerIdStr = meta.getPersistentDataContainer().get(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING);
+                if (Objects.equals(prevPlayerIdStr, Coin.KROMER_POOL_ID)) {
+                    Tribes.addKromersToPool(-kromers);
+                    Tribes.debugMessage("transfered " + kromers + " kromers: pool -> " + pickupingTribe.getName());
+                } else {
+                    UUID prevPlayerId = UUID.fromString(prevPlayerIdStr);
+                    Tribe prevOwner = Tribes.getTribe(prevPlayerId);
+                    if (prevOwner == null) {
+                        Bukkit.broadcast(Component.text("Error: failed to change coin owners (pls contact gruve)"));
+                        return false;
+                    }
+                    prevOwner.addKromers(-kromers); // fjerner kromers til playeren som eide det fra før av
+                    Tribes.debugMessage("transfered " + kromers + " kromers: " + prevOwner.getName() + " -> " + pickupingTribe.getName());
+                }
                 lore.set(lore.size() - 1, pickupingTribe.getDisplayName());
                 meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingTribe.getPlayerId().toString());
                 meta.lore(lore);
-                pickupingTribe.addKromers(kromers); // adder kromers til playeren som plukka de opp
-                prevOwner.addKromers(-kromers); // fjerner kromers til playeren som eide det fra før av
+                pickupingTribe.addKromers(kromers); // adder kromers til playeren som plukka de opp //TODO: gjør at dette er 1 transaksjon!! ikke trekk fra og legg til på forskjellige steder
             }
         } else { // player head
             meta.getPersistentDataContainer().set(new NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING, pickupingTribe.getPlayerId().toString());
