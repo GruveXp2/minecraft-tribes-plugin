@@ -33,7 +33,7 @@ class TribeCommand : CommandExecutor {
                 val totalCoins = tribes.sumOf { it.kromerBalance }
                 val lines = 100 // hvor mange |
                 return Component.text("Kromer distribution: ").apply {
-                    tribes.forEach {
+                    if (totalCoins > 0) tribes.forEach {
                         append(Component.text("|".repeat(it.kromerBalance * lines / totalCoins), it.color))
                     }
 
