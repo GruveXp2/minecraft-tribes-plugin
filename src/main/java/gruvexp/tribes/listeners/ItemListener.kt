@@ -1,12 +1,9 @@
 package gruvexp.tribes.listeners
 
 import gruvexp.tribes.Coin
-import gruvexp.tribes.ItemManager.toKromer
 import gruvexp.tribes.Main
 import gruvexp.tribes.Tribe
-import gruvexp.tribes.Tribes.addKromersToPool
-import gruvexp.tribes.Tribes.debugMessage
-import gruvexp.tribes.Tribes.getTribe
+import gruvexp.tribes.Tribes
 import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.Bukkit
@@ -59,7 +56,7 @@ class ItemListener : Listener {
         val item = e.item
         val itemStack = item.itemStack
         val p = e.entity as Player
-        val pickupingTribe = getTribe(p.uniqueId)
+        val pickupingTribe = Tribes.getTribe(p.uniqueId)
         if (pickupingTribe == null) {
             Bukkit.broadcast(Component.text("Error! Player ${p.name} tried to pick up a coin/head but arent registered in the tribe plugin. pls contact gruve"))
             return
@@ -82,7 +79,7 @@ class ItemListener : Listener {
                 InventoryAction.PICKUP_SOME, InventoryAction.MOVE_TO_OTHER_INVENTORY -> {
                     val itemStack = e.currentItem
                     val p = e.whoClicked as Player
-                    val tribe = getTribe(p.uniqueId) ?: return
+                    val tribe = Tribes.getTribe(p.uniqueId) ?: return
                     checkNotNull(itemStack)
                     considerOwnerChange(itemStack, tribe)
                     e.currentItem = itemStack // oppdaterer itemet i eventen
@@ -113,24 +110,24 @@ class ItemListener : Listener {
 
         val meta = itemStack.itemMeta
 
-        if (itemStack.type == Material.FIREWORK_STAR && meta.hasCustomModelData() && meta.customModelData >= 77000 && meta.customModelData < 77005) { // skjekker om itemet er en coin (customodeldata er mellom 77000 og 77004)
+        if (itemStack.type == Material.FIREWORK_STAR && Coin.isCoin(itemStack)) {
             val lore = meta.lore()
             if (lore != null) {
-                val kromers = toKromer(itemStack)
+                val kromers = Coin.toKromer(itemStack)
                 val prevPlayerIdStr = meta.persistentDataContainer
                     .get(NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING)
                 if (prevPlayerIdStr == Coin.KROMER_POOL_ID) {
-                    addKromersToPool(-kromers)
-                    debugMessage("transfered " + kromers + " kromers: pool -> " + pickupingTribe.name)
+                    Tribes.addKromersToPool(-kromers)
+                    Tribes.debugMessage("transfered " + kromers + " kromers: pool -> " + pickupingTribe.name)
                 } else {
                     val prevPlayerId = UUID.fromString(prevPlayerIdStr)
-                    val prevOwner = getTribe(prevPlayerId)
+                    val prevOwner = Tribes.getTribe(prevPlayerId)
                     if (prevOwner == null) {
                         Bukkit.broadcast(Component.text("Error: failed to change coin owners (pls contact gruve)"))
                         return false
                     }
                     prevOwner.addKromers(-kromers) // fjerner kromers til playeren som eide det fra før av
-                    debugMessage("transfered " + kromers + " kromers: " + prevOwner.name + " -> " + pickupingTribe.name)
+                    Tribes.debugMessage("transfered " + kromers + " kromers: " + prevOwner.name + " -> " + pickupingTribe.name)
                 }
                 lore[lore.size - 1] = pickupingTribe.displayName
                 meta.persistentDataContainer.set(
@@ -152,7 +149,7 @@ class ItemListener : Listener {
         return true
     }
 
-    private fun handleItemDestruction(e: EntityEvent, item: Item) {
+    private fun <E> handleItemDestruction(e: E, item: Item) where E : EntityEvent, E : Cancellable {
         val itemStack = item.itemStack
         val type = itemStack.type
         if (type != Material.FIREWORK_STAR && type != Material.PLAYER_HEAD && type != Material.SHULKER_BOX) {
@@ -160,11 +157,10 @@ class ItemListener : Listener {
         }
         val meta = itemStack.itemMeta
 
-        if (type == Material.FIREWORK_STAR && meta.hasCustomModelData()) { // sjekker om itemet er en coin (customModelData er større eller lik 77000)
+        if (type == Material.FIREWORK_STAR && Coin.isCoin(itemStack)) {
             val lore = meta.lore()
             if (lore != null) {
-                val cancellable = e as Cancellable
-                cancellable.isCancelled = true // konverterer eventen til en cancellable sånn at men kan kanselere den
+                e.isCancelled = true
                 //String playerName = PlainTextComponentSerializer.plainText().serialize(lore.get(lore.size() - 1)); // andre linje i loren er eieren av coinsene
                 val playerIDStr = meta.persistentDataContainer
                     .get(NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING)
@@ -178,8 +174,7 @@ class ItemListener : Listener {
                 }
             }
         } else if (type == Material.PLAYER_HEAD) { // player head
-            val cancellable = e as Cancellable
-            cancellable.isCancelled = true // player heads kanke ødlegges uansett hva
+            e.isCancelled = true // player heads kanke ødlegges uansett hva
             val ownerIDStr = meta.persistentDataContainer
                 .get(NamespacedKey(Main.getPlugin(), "owner"), PersistentDataType.STRING)
             if (ownerIDStr == null) return

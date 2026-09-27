@@ -25,12 +25,6 @@ object ItemManager {
         return poolCoins.getValue(coin).apply { this.amount = amount }
     }
 
-    @JvmStatic
-    fun toKromer(item: ItemStack): Int {
-        val itemModel = item.itemMeta.customModelData
-        return (Coin.toCoinType(itemModel)?.value ?: 0) * item.amount
-    }
-
     fun toItems(kromer: Int, tribe: Tribe): List<ItemStack> { // owner = playerName
         var kromersLeft = kromer
         val coins = playerCoins[tribe] ?: error("Error when making coins: owner \"${tribe.name}\" isnt registered")
@@ -48,15 +42,15 @@ object ItemManager {
     @JvmStatic
     fun getHead(p: OfflinePlayer, deathMessage: Component): ItemStack {
         val item = ItemStack(Material.PLAYER_HEAD)
-        val itemMeta = checkNotNull(item.getItemMeta() as SkullMeta)
-        itemMeta.getPersistentDataContainer().set<String?, String?>(
+        val itemMeta = checkNotNull(item.itemMeta as SkullMeta)
+        itemMeta.persistentDataContainer.set(
             NamespacedKey(Main.getPlugin(), "uuid"),
             PersistentDataType.STRING,
-            p.getUniqueId().toString()
+            p.uniqueId.toString()
         )
-        itemMeta.setOwningPlayer(p)
+        itemMeta.owningPlayer = p
         itemMeta.lore(listOf(deathMessage))
-        item.setItemMeta(itemMeta)
+        item.itemMeta = itemMeta
         return item
     }
 
@@ -76,7 +70,7 @@ object ItemManager {
 
         val copperToIron =
             ShapelessRecipe(NamespacedKey(Main.getPlugin(), "${tribe.playerId}_CopperIronRecipe"), coins[Coin.IRON]!!)
-        copperToIron.addIngredient(8, coins.get(Coin.COPPER)!!)
+        copperToIron.addIngredient(8, coins[Coin.COPPER]!!)
         Bukkit.addRecipe(copperToIron)
 
         //p.discoverRecipe(copperToIron.getKey());
