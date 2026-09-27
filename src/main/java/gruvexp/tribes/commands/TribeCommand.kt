@@ -58,7 +58,7 @@ class TribeCommand : CommandExecutor {
 
                     tribes.forEach { tribe ->
                         it.append(tribe.displayName)
-                        it.append(Component.text(" (${tribe.playerId}): "))
+                        it.append(Component.text(" (${tribe.playerName}): "))
                         it.append(Component.text("${tribe.kromerBalance} kr", NamedTextColor.GREEN))
                         it.appendNewline()
                     }
