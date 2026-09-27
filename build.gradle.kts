@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     implementation(libs.com.fasterxml.jackson.core.jackson.databind)
-    compileOnly(libs.io.papermc.paper.paper.api)
+    compileOnly("io.papermc.paper:paper-api:26.1.+")
     testImplementation(kotlin("test"))
 }
 
