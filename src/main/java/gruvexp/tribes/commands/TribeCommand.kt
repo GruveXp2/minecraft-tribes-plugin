@@ -44,23 +44,25 @@ class TribeCommand : CommandExecutor {
             "stats" -> {
                 val tribes = Tribes.getTribes()
                 val totalCoins = tribes.sumOf { it.kromerBalance }
-                val lines = 100 // hvor mange |
-                return Component.text("Kromer distribution: ").apply {
-                    if (totalCoins > 0) tribes.forEach {
-                        append(Component.text("|".repeat(it.kromerBalance * lines / totalCoins), it.color))
+                val lines = 100 // # of '|' symbols
+                return Component.text().apply {
+                    it.append(Component.text("Kromer distribution: "))
+                    if (totalCoins > 0) tribes.forEach { tribe ->
+                        it.append(Component.text("|".repeat(tribe.kromerBalance * lines / totalCoins), tribe.color))
                     }
+                    it.appendNewline()
 
-                    append(Component.text("Kromer pool: "))
-                    append(Component.text("${Tribes.kromerPool} kr", NamedTextColor.GREEN))
-                    appendNewline()
+                    it.append(Component.text("Kromer pool: "))
+                    it.append(Component.text("${Tribes.kromerPool} kr", NamedTextColor.GREEN))
+                    it.appendNewline()
 
-                    tribes.forEach {
-                        append(it.displayName)
-                        append(Component.text(" (${it.playerId}): "))
-                        append(Component.text("${it.kromerBalance} kr", NamedTextColor.GREEN))
-                        appendNewline()
+                    tribes.forEach { tribe ->
+                        it.append(tribe.displayName)
+                        it.append(Component.text(" (${tribe.playerId}): "))
+                        it.append(Component.text("${tribe.kromerBalance} kr", NamedTextColor.GREEN))
+                        it.appendNewline()
                     }
-                }
+                }.build()
             }
 
             "create", "init" -> { // create <color> <displayName>
