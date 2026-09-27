@@ -46,14 +46,13 @@ class TribeCommand : CommandExecutor {
                 val totalCoins = tribes.sumOf { it.kromerBalance }
                 val lines = 100 // # of '|' symbols
                 return Component.text().apply {
+                    it.append(Component.text("Kromer pool: "))
+                    it.append(Component.text("${Tribes.kromerPool} kr", NamedTextColor.GREEN))
+                    it.appendNewline()
                     it.append(Component.text("Kromer distribution: "))
                     if (totalCoins > 0) tribes.forEach { tribe ->
                         it.append(Component.text("|".repeat(tribe.kromerBalance * lines / totalCoins), tribe.color))
                     }
-                    it.appendNewline()
-
-                    it.append(Component.text("Kromer pool: "))
-                    it.append(Component.text("${Tribes.kromerPool} kr", NamedTextColor.GREEN))
                     it.appendNewline()
 
                     tribes.forEach { tribe ->
