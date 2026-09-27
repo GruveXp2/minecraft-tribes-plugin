@@ -8,7 +8,7 @@ import org.bukkit.entity.Player
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
-import java.util.*
+import java.util.UUID
 
 object Tribes {
     // A godclass that probably breaks every SOLID rule
